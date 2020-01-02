@@ -43,6 +43,9 @@ dependencies {
     api(group = "io.sentry", name = "sentry-logback", version = "1.7.17")
     api(group = "com.google.apis", name = "google-api-services-youtube", version = "v3-rev212-1.25.0")
     api(group = "me.duncte123", name = "botCommons", version = "1.0.65")
+
+
+    implementation(group = "se.michaelthelin.spotify", name = "spotify-web-api-java", version = "4.2.1")
 }
 
 configure<JavaPluginConvention> {

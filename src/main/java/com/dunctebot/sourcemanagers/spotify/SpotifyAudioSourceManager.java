@@ -16,6 +16,8 @@
 
 package com.dunctebot.sourcemanagers.spotify;
 
+import com.dunctebot.sourcemanagers.AudioTrackInfoWithImage;
+import com.dunctebot.sourcemanagers.extra.LimitReachedException;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Video;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
@@ -29,11 +31,6 @@ import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.credentials.ClientCredentials;
 import com.wrapper.spotify.model_objects.specification.*;
 import com.wrapper.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
-import ml.duncte123.skybot.Author;
-import ml.duncte123.skybot.audio.TrackScheduler;
-import ml.duncte123.skybot.audio.sourcemanagers.AudioTrackInfoWithImage;
-import ml.duncte123.skybot.exceptions.LimitReachedException;
-import ml.duncte123.skybot.objects.config.DunctebotConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,9 +48,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ml.duncte123.skybot.utils.YoutubeUtils.*;
+import static com.dunctebot.sourcemanagers.extra.YoutubeUtils.*;
 
-@Author(nickname = "duncte123", author = "Duncan Sterken")
 public class SpotifyAudioSourceManager implements AudioSourceManager {
 
     private static final Logger logger = LoggerFactory.getLogger(SpotifyAudioSourceManager.class);
@@ -76,16 +72,20 @@ public class SpotifyAudioSourceManager implements AudioSourceManager {
     private final SpotifyApi spotifyApi;
     private final YoutubeAudioSourceManager youtubeAudioSourceManager;
     private final ScheduledExecutorService service;
-    private final DunctebotConfig.Apis config;
+    /*private final String spotifyClientId;
+    private final String spotifyClientSecret;*/
+    private final String youtubeApiKey;
+    private final int playlistLimit;
 
-    public SpotifyAudioSourceManager(YoutubeAudioSourceManager youtubeAudioSourceManager, DunctebotConfig.Apis config) {
-        this.config = config;
+    public SpotifyAudioSourceManager(YoutubeAudioSourceManager youtubeAudioSourceManager,
+                                    String spotifyClientId, String spotifyClientSecret, String youtubeApiKey,
+                                     int playlistLimit) {
+        /*this.spotifyClientId = spotifyClientId;
+        this.spotifyClientSecret = spotifyClientSecret;*/
+        this.youtubeApiKey = youtubeApiKey;
+        this.playlistLimit = playlistLimit;
 
-        final String clientId = config.spotify.clientId;
-        final String clientSecret = config.spotify.clientSecret;
-        final String youtubeApiKey = config.googl;
-
-        if (clientId == null || clientSecret == null || youtubeApiKey == null) {
+        if (spotifyClientId == null || spotifyClientSecret == null || youtubeApiKey == null) {
             logger.error("Could not load Spotify keys");
             this.spotifyApi = null;
             this.service = null;
@@ -93,8 +93,8 @@ public class SpotifyAudioSourceManager implements AudioSourceManager {
         } else {
             this.youtubeAudioSourceManager = youtubeAudioSourceManager;
             this.spotifyApi = new SpotifyApi.Builder()
-                .setClientId(clientId)
-                .setClientSecret(clientSecret)
+                .setClientId(spotifyClientId)
+                .setClientSecret(spotifyClientSecret)
                 .build();
 
             this.service = Executors.newScheduledThreadPool(2, (r) -> new Thread(r, "Spotify-Token-Update-Thread"));
@@ -177,8 +177,8 @@ public class SpotifyAudioSourceManager implements AudioSourceManager {
                 return null;
             }
 
-            if (playlistTracks.length > TrackScheduler.QUEUE_SIZE && !isPatron) {
-                throw new LimitReachedException("The playlist is too big", TrackScheduler.QUEUE_SIZE);
+            if (playlistTracks.length > this.playlistLimit && !isPatron) {
+                throw new LimitReachedException("The playlist is too big", this.playlistLimit);
             }
 
             for (final PlaylistTrack playlistTrack : playlistTracks) {
@@ -227,7 +227,7 @@ public class SpotifyAudioSourceManager implements AudioSourceManager {
                 return null;
             }
 
-            final Video v = getVideoById(videoId, this.config.googl);
+            final Video v = getVideoById(videoId, this.youtubeApiKey);
 
             return audioTrackFromVideo(v, track.getAlbum().getImages());
         }
@@ -298,7 +298,7 @@ public class SpotifyAudioSourceManager implements AudioSourceManager {
 
     private List<AudioTrack> getTrackListFromVideoIds(List<String> videoIds, Image[] images) throws Exception {
         final String videoIdsJoined = String.join(",", videoIds);
-        final List<Video> videosByIds = getVideosByIds(videoIdsJoined, this.config.googl);
+        final List<Video> videosByIds = getVideosByIds(videoIdsJoined, this.youtubeApiKey);
         final List<AudioTrack> playList = new ArrayList<>();
 
         videosByIds.forEach((video) -> playList.add(audioTrackFromVideo(video, images)));
@@ -308,7 +308,7 @@ public class SpotifyAudioSourceManager implements AudioSourceManager {
 
     @Nullable
     private String searchYoutube(String title, String author) throws IOException {
-        final List<SearchResult> results = searchYoutubeIdOnly(title + " " + author, this.config.googl, 1L);
+        final List<SearchResult> results = searchYoutubeIdOnly(title + " " + author, this.youtubeApiKey, 1L);
 
         if (!results.isEmpty()) {
             return results.get(0).getId().getVideoId();
