@@ -1,0 +1,8 @@
+!.idea/copyright/profiles_settings.xml
+!.idea/copyright/skybot.xml
+.idea/
+build/
+out/
+.gradle/
+!\.idea/copyright/*
+!\.idea/codeStyles/*
