@@ -62,12 +62,12 @@ public class PornHubAudioTrack extends DelegatedAudioTrack {
         }
     }
 
-    /* package */ static String loadTrackUrl(AudioTrackInfo trackInfo, HttpInterface HttpInterface) throws IOException {
+    /* package */ static String loadTrackUrl(AudioTrackInfo trackInfo, HttpInterface httpInterface) throws IOException {
         final HttpGet httpGet = new HttpGet(trackInfo.identifier);
 
         httpGet.setHeader("Cookie", "platform=tv");
 
-        try (final CloseableHttpResponse response = HttpInterface.execute(httpGet)) {
+        try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
             final Matcher matcher = MEDIA_STRING.matcher(html);
 

@@ -16,12 +16,10 @@
 
 package com.dunctebot.sourcemanagers.speech;
 
+import com.dunctebot.sourcemanagers.Mp3Track;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import ml.duncte123.skybot.Author;
-import ml.duncte123.skybot.audio.sourcemanagers.Mp3Track;
 
-@Author(nickname = "ramidzkh", author = "Ramid Khan")
 public class SpeechAudioTrack extends Mp3Track {
 
     SpeechAudioTrack(AudioTrackInfo trackInfo, SpeechAudioSourceManager manager) {

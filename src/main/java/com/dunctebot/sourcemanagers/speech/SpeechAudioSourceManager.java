@@ -16,21 +16,19 @@
 
 package com.dunctebot.sourcemanagers.speech;
 
+import com.dunctebot.sourcemanagers.IdentifiedAudioReference;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import ml.duncte123.skybot.Author;
-import ml.duncte123.skybot.audio.sourcemanagers.IdentifiedAudioReference;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-@Author(nickname = "ramidzkh", author = "Ramid Khan")
 public class SpeechAudioSourceManager extends HttpAudioSourceManager {
 
     private static final String PREFIX = "speak:";

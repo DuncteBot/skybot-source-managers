@@ -20,38 +20,23 @@ import com.dunctebot.sourcemanagers.clypit.ClypitAudioSourceManager;
 import com.dunctebot.sourcemanagers.extra.YoutubeContextFilterOverride;
 import com.dunctebot.sourcemanagers.pornhub.PornHubAudioSourceManager;
 import com.dunctebot.sourcemanagers.speech.SpeechAudioSourceManager;
-import com.dunctebot.sourcemanagers.spotify.SpotifyAudioSourceManager;
-import com.dunctebot.sourcemanagers.youtube.YoutubeAudioSourceManagerOverride;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import net.notfab.caching.client.CacheClient;
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 
 public class DuncteBotSources {
     public static void registerCustom(AudioPlayerManager playerManager, String speechLanguage,
-                                      int playlistPageCount, boolean updateYoutubeData,
-                                      String youtubeApiKey, CacheClient cacheClient,
-                                      String spotifyClientId, String spotifyClientSecret, int playlistLimit) {
+                                      int playlistPageCount, boolean updateYoutubeData) {
 
-        final YoutubeAudioSourceManagerOverride youtubeAudioSourceManager = new YoutubeAudioSourceManagerOverride(
-            cacheClient,
-            youtubeApiKey
-        );
+        final YoutubeAudioSourceManager youtubeSource = playerManager.source(YoutubeAudioSourceManager.class);
+        youtubeSource.setPlaylistPageCount(playlistPageCount);
+        youtubeSource.getMainHttpConfiguration()
+            .setHttpContextFilter(
+                new YoutubeContextFilterOverride(updateYoutubeData, youtubeSource.getHttpInterface())
+            );
 
-        youtubeAudioSourceManager.setPlaylistPageCount(playlistPageCount);
-        youtubeAudioSourceManager.getMainHttpConfiguration().setHttpContextFilter(new YoutubeContextFilterOverride(updateYoutubeData));
-
-        playerManager.registerSourceManager(
-            new SpotifyAudioSourceManager(
-                youtubeAudioSourceManager,
-                spotifyClientId,
-                spotifyClientSecret,
-                youtubeApiKey,
-                playlistLimit
-            )
-        );
         playerManager.registerSourceManager(new ClypitAudioSourceManager());
         playerManager.registerSourceManager(new SpeechAudioSourceManager(speechLanguage));
         playerManager.registerSourceManager(new PornHubAudioSourceManager());
-        playerManager.registerSourceManager(youtubeAudioSourceManager);
 
     }
 }

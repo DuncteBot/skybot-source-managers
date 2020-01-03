@@ -17,20 +17,26 @@
 package com.dunctebot.sourcemanagers.extra;
 
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeHttpContextFilter;
+import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import io.sentry.Sentry;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static com.dunctebot.sourcemanagers.extra.YoutubeUtils.getYoutubeHeaderDetails;
-
 public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter implements Closeable {
     private YoutubeVersionData youtubeVersionData = null;
+    private final HttpInterface httpInterface;
     private final ScheduledExecutorService dataUpdateThread = Executors.newSingleThreadScheduledExecutor((r) -> {
         final Thread t = new Thread();
         t.setName("YouTube-data-updater");
@@ -38,11 +44,13 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
         return t;
     });
 
-    public YoutubeContextFilterOverride() {
-        this(true);
+    public YoutubeContextFilterOverride(HttpInterface httpInterface) {
+        this(true, httpInterface);
     }
 
-    public YoutubeContextFilterOverride(boolean shouldUpdate) {
+    public YoutubeContextFilterOverride(boolean shouldUpdate, HttpInterface httpInterface) {
+        this.httpInterface = httpInterface;
+
         if (shouldUpdate) {
             dataUpdateThread.scheduleAtFixedRate(this::updateYoutubeData, 0L, 1L, TimeUnit.DAYS);
         }
@@ -53,6 +61,22 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
             this.youtubeVersionData = getYoutubeHeaderDetails();
         } catch (IOException e) {
             Sentry.capture(e);
+        }
+    }
+
+    private YoutubeVersionData getYoutubeHeaderDetails() throws IOException {
+        final HttpGet httpGet = new HttpGet("https://www.youtube.com/");
+        httpGet.setHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36");
+
+        try (final CloseableHttpResponse response = this.httpInterface.execute(httpGet)) {
+            final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+
+            final String extracted = DataFormatTools.extractBetween(html,
+                "window.ytplayer = {};ytcfg.set(",
+                ");ytcfg.set(");
+            final JsonBrowser json = JsonBrowser.parse(extracted);
+
+            return YoutubeVersionData.fromBrowser(json);
         }
     }
 
@@ -71,7 +95,7 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         dataUpdateThread.shutdown();
     }
 }
