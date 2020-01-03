@@ -36,7 +36,6 @@ repositories {
 dependencies {
     api(group = "com.github.duncte123", name = "lavaplayer", version = "1dff250")
     api(group = "io.sentry", name = "sentry-logback", version = "1.7.17")
-    api(group = "me.duncte123", name = "botCommons", version = "1.0.65")
 }
 
 configure<JavaPluginConvention> {
