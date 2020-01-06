@@ -31,7 +31,7 @@ public class DuncteBotSources {
         youtubeSource.setPlaylistPageCount(playlistPageCount);
         youtubeSource.getMainHttpConfiguration()
             .setHttpContextFilter(
-                new YoutubeContextFilterOverride(updateYoutubeData, youtubeSource.getHttpInterface())
+                YoutubeContextFilterOverride.getOrCreate(updateYoutubeData, youtubeSource.getHttpInterface())
             );
 
         playerManager.registerSourceManager(new ClypitAudioSourceManager());
