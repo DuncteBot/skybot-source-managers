@@ -41,7 +41,7 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
     private YoutubeVersionData youtubeVersionData = null;
     private final HttpInterface httpInterface;
     private final ScheduledExecutorService dataUpdateThread = Executors.newSingleThreadScheduledExecutor((r) -> {
-        final Thread t = new Thread();
+        final Thread t = new Thread(r);
         t.setName("YouTube-data-updater");
         t.setDaemon(true);
         return t;
