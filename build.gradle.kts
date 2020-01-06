@@ -18,7 +18,6 @@ import org.gradle.api.tasks.wrapper.Wrapper.DistributionType
 
 plugins {
     idea
-    application
     `java-library`
     `maven-publish`
 }
