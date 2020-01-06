@@ -26,6 +26,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -35,6 +37,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter implements Closeable {
+    private static final Logger logger = LoggerFactory.getLogger(YoutubeContextFilterOverride.class);
     private YoutubeVersionData youtubeVersionData = null;
     private final HttpInterface httpInterface;
     private final ScheduledExecutorService dataUpdateThread = Executors.newSingleThreadScheduledExecutor((r) -> {
@@ -54,7 +57,9 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
 
     private void updateYoutubeData() {
         try {
+            logger.info("Updating youtube version data");
             this.youtubeVersionData = getYoutubeHeaderDetails();
+            logger.info("New youtube version data {}", this.youtubeVersionData);
         } catch (IOException e) {
             Sentry.capture(e);
         }
