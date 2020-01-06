@@ -46,8 +46,17 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
         t.setDaemon(true);
         return t;
     });
+    private static YoutubeContextFilterOverride INSTANCE;
 
-    public YoutubeContextFilterOverride(boolean shouldUpdate, HttpInterface httpInterface) {
+    public synchronized static YoutubeContextFilterOverride getOrCreate(boolean shouldUpdate, HttpInterface httpInterface) {
+        if (INSTANCE == null) {
+            INSTANCE = new YoutubeContextFilterOverride(shouldUpdate, httpInterface);
+        }
+
+        return INSTANCE;
+    }
+
+    private YoutubeContextFilterOverride(boolean shouldUpdate, HttpInterface httpInterface) {
         this.httpInterface = httpInterface;
 
         if (shouldUpdate) {
