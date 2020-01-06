@@ -20,6 +20,7 @@ plugins {
     idea
     application
     `java-library`
+    `maven-publish`
 }
 
 group = "com.dunctebot.sourcemanagers"
@@ -34,7 +35,8 @@ repositories {
 }
 
 dependencies {
-    api(group = "com.github.duncte123", name = "lavaplayer", version = "1dff250")
+//    api(group = "com.github.duncte123", name = "lavaplayer", version = "1dff250")
+    api(group = "com.sedmelluq", name = "lavaplayer", version = "1.3.33")
     api(group = "io.sentry", name = "sentry-logback", version = "1.7.17")
 }
 
