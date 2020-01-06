@@ -15,15 +15,21 @@
  */
 
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType
+import com.jfrog.bintray.gradle.BintrayExtension
+import com.jfrog.bintray.gradle.tasks.BintrayUploadTask
+import java.util.*
 
 plugins {
     idea
     `java-library`
     `maven-publish`
+
+    id("com.jfrog.bintray") version "1.8.1"
 }
 
-group = "com.dunctebot.sourcemanagers"
-version = "1.0-SNAPSHOT"
+project.group = "com.dunctebot"
+project.version = "1.0.0"
+val archivesBaseName = "sourcemanagers"
 
 repositories {
     jcenter()
@@ -47,3 +53,43 @@ tasks.withType<Wrapper> {
     distributionType = DistributionType.ALL
     gradleVersion = "5.6.3"
 }
+
+val bintrayUpload: BintrayUploadTask by tasks
+val build: Task by tasks
+
+bintrayUpload.apply {
+    dependsOn(build)
+
+    onlyIf { System.getenv("BINTRAY_USER") != null }
+    onlyIf { System.getenv("BINTRAY_KEY") != null }
+}
+
+publishing {
+    publications {
+        register("BintrayRelease", MavenPublication::class) {
+            from(components["java"])
+
+            artifactId = archivesBaseName
+            groupId = project.group as String
+            version = project.version as String
+        }
+    }
+}
+
+bintray {
+    user = System.getenv("BINTRAY_USER")
+    key = System.getenv("BINTRAY_KEY")
+    setPublications("BintrayRelease")
+    pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
+        repo = "maven"
+        name = "sourcemanagers"
+        setLicenses("Apache-2.0")
+        vcsUrl = "https://github.com/dunctebot/skybot-source-managers.git"
+        publish = true
+        version(delegateClosureOf<BintrayExtension.VersionConfig> {
+            name = project.version as String
+            released = Date().toString()
+        })
+    })
+}
+
