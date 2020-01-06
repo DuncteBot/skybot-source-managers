@@ -93,7 +93,6 @@ public class ClypitAudioSourceManager extends HttpAudioSourceManager {
                 throw new IOException("Unexpected status code for video page response: " + statusCode);
             }
 
-
             final String json = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
 
             return JsonBrowser.parse(json);

@@ -62,7 +62,7 @@ public class PornHubAudioTrack extends DelegatedAudioTrack {
         }
     }
 
-    /* package */ static String loadTrackUrl(AudioTrackInfo trackInfo, HttpInterface httpInterface) throws IOException {
+    private static String loadTrackUrl(AudioTrackInfo trackInfo, HttpInterface httpInterface) throws IOException {
         final HttpGet httpGet = new HttpGet(trackInfo.identifier);
 
         httpGet.setHeader("Cookie", "platform=tv");
@@ -89,7 +89,7 @@ public class PornHubAudioTrack extends DelegatedAudioTrack {
 
         for (final String i : items) {
             final String item = i.trim();
-            final String regex = "var\\s+?" + item + "=\"([a-zA-Z0-9=?&_\\-\\.\\/\"\\+: ]+)\";";
+            final String regex = "var\\s+?" + item + "=\"([a-zA-Z0-9=?&%_\\-\\.\\/\"\\+: ]+)\";";
             final Pattern pattern = Pattern.compile(regex);
             final Matcher matcher = pattern.matcher(htmlPage);
 
