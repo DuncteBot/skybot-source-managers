@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 public class PornHubAudioTrack extends DelegatedAudioTrack {
     private static final Pattern MEDIA_STRING = Pattern.compile("(var\\s+?mediastring.+?)<\\/script>");
-    private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9]+ \\+ \\*\\/"); // Should be used with replaceAll
+    private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9_]+ \\+ \\*\\/");
 
     private final PornHubAudioSourceManager sourceManager;
 
@@ -89,7 +89,7 @@ public class PornHubAudioTrack extends DelegatedAudioTrack {
 
         for (final String i : items) {
             final String item = i.trim();
-            final String regex = "var\\s+?" + item + "=\"([a-zA-Z0-9=?&%_\\-\\.\\/\"\\+: ]+)\";";
+            final String regex = "var\\s+?" + item + "=\"([a-zA-Z0-9=?&%~_\\-\\.\\/\"\\+: ]+)\";";
             final Pattern pattern = Pattern.compile(regex);
             final Matcher matcher = pattern.matcher(htmlPage);
 
