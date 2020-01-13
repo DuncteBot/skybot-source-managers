@@ -28,7 +28,7 @@ plugins {
 }
 
 project.group = "com.dunctebot"
-project.version = "1.0.0"
+project.version = "1.0.1"
 val archivesBaseName = "sourcemanagers"
 
 repositories {
@@ -55,7 +55,23 @@ tasks.withType<Wrapper> {
 }
 
 val bintrayUpload: BintrayUploadTask by tasks
+val jar: Jar by tasks
 val build: Task by tasks
+val clean: Task by tasks
+
+val sourcesJar = task<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets["main"].allJava)
+}
+
+build.apply {
+//    dependsOn(clean)
+    dependsOn(jar)
+    dependsOn(sourcesJar)
+
+    jar.mustRunAfter(clean)
+    sourcesJar.mustRunAfter(jar)
+}
 
 bintrayUpload.apply {
     dependsOn(build)
@@ -68,6 +84,7 @@ publishing {
     publications {
         register("BintrayRelease", MavenPublication::class) {
             from(components["java"])
+            artifact(sourcesJar)
 
             artifactId = archivesBaseName
             groupId = project.group as String
