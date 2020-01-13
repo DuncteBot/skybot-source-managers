@@ -138,8 +138,8 @@ public class PornHubAudioSourceManager implements AudioSourceManager, HttpConfig
         final String title = videoInfo.get("video_title").safeText();
         final String author = modelInfo.get("username").safeText();
         final int duration = Integer.parseInt(videoInfo.get("video_duration").safeText()) * 1000; // PornHub returns seconds
-//        final Matcher matcher = VIDEO_REGEX.matcher(reference.identifier);
-        final String identifier = /*matcher.matches() ? matcher.group(1) :*/ reference.identifier;
+        final Matcher matcher = VIDEO_REGEX.matcher(reference.identifier);
+        final String identifier = matcher.matches() ? "https://www.pornhub.com/view_video.php?viewkey=" + matcher.group(matcher.groupCount()) : reference.identifier;
         final String uri = reference.identifier;
         final String imageUrl = videoInfo.get("image_url").safeText();
 
