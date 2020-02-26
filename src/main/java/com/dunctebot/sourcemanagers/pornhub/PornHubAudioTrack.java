@@ -16,49 +16,37 @@
 
 package com.dunctebot.sourcemanagers.pornhub;
 
-import com.sedmelluq.discord.lavaplayer.container.mpeg.MpegAudioTrack;
+import com.dunctebot.sourcemanagers.MpegTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
-import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PornHubAudioTrack extends DelegatedAudioTrack {
+import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.SUSPICIOUS;
+
+public class PornHubAudioTrack extends MpegTrack {
     private static final Pattern MEDIA_STRING = Pattern.compile("(var\\s+?mediastring.+?)<\\/script>");
     private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9_]+ \\+ \\*\\/");
 
-    private final PornHubAudioSourceManager sourceManager;
-
     public PornHubAudioTrack(AudioTrackInfo trackInfo, PornHubAudioSourceManager sourceManager) {
-        super(trackInfo);
-        this.sourceManager = sourceManager;
+        super(trackInfo, sourceManager);
     }
 
     @Override
-    public void process(LocalAudioTrackExecutor executor) throws Exception {
-        if (!this.trackInfo.identifier.equals(this.trackInfo.uri)) {
-            return;
-        }
-
-        final String playbackUrl = loadTrackUrl(this.trackInfo, this.sourceManager.getHttpInterface());
-
-        try (final PersistentHttpStream stream = new PersistentHttpStream(this.sourceManager.getHttpInterface(), new URI(playbackUrl), Long.MAX_VALUE)) {
-            processDelegate(
-                new MpegAudioTrack(this.trackInfo, stream),
-                executor
-            );
+    protected String getPlaybackUrl() {
+        try {
+            return loadTrackUrl(this.trackInfo, this.getSourceManager().getHttpInterface());
+        } catch (IOException e) {
+            throw new FriendlyException("Could not load PornHub video", SUSPICIOUS, e);
         }
     }
 
@@ -72,7 +60,7 @@ public class PornHubAudioTrack extends DelegatedAudioTrack {
             final Matcher matcher = MEDIA_STRING.matcher(html);
 
             if (!matcher.find()) {
-                throw new FriendlyException("Could not find media info", FriendlyException.Severity.SUSPICIOUS, null);
+                throw new FriendlyException("Could not find media info", SUSPICIOUS, null);
             }
 
             final String js = matcher.group(matcher.groupCount());
@@ -95,7 +83,7 @@ public class PornHubAudioTrack extends DelegatedAudioTrack {
 
             if (!matcher.find()) {
                 System.out.println(htmlPage);
-                throw new FriendlyException("URL part " + item + " missing", FriendlyException.Severity.SUSPICIOUS, null);
+                throw new FriendlyException("URL part " + item + " missing", SUSPICIOUS, null);
             }
 
             videoParts.add(
@@ -104,10 +92,5 @@ public class PornHubAudioTrack extends DelegatedAudioTrack {
         }
 
         return String.join("", videoParts);
-    }
-
-    @Override
-    public PornHubAudioSourceManager getSourceManager() {
-        return sourceManager;
     }
 }

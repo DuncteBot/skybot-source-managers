@@ -16,52 +16,27 @@
 
 package com.dunctebot.sourcemanagers;
 
-import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
+import com.sedmelluq.discord.lavaplayer.container.mpeg.MpegAudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 
-public class Mp3Track extends DelegatedAudioTrack {
-    protected static final Logger log = LoggerFactory.getLogger(Mp3Track.class);
-
-    private final HttpAudioSourceManager manager;
-
-    public Mp3Track(AudioTrackInfo trackInfo, AudioSourceManager manager) {
-        super(trackInfo);
-        this.manager = (HttpAudioSourceManager) manager;
+public abstract class MpegTrack extends Mp3Track {
+    public MpegTrack(AudioTrackInfo trackInfo, AudioSourceManager manager) {
+        super(trackInfo, manager);
     }
 
     @Override
-    public void process(LocalAudioTrackExecutor executor) throws Exception {
-        try (HttpInterface httpInterface = manager.getHttpInterface()) {
-            loadStream(executor, httpInterface);
-        }
-    }
-
     protected void loadStream(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface) throws Exception {
         final String trackUrl = getPlaybackUrl();
-        log.debug("Starting {} track from URL: {}", manager.getSourceName(), trackUrl);
+        log.debug("Starting {} track from URL: {}", getSourceManager().getSourceName(), trackUrl);
         // Setting contentLength (last param) to null makes it default to Long.MAX_VALUE
         try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(trackUrl), null)) {
-            // TODO make a method to only return the class that we need
-            processDelegate(new Mp3AudioTrack(trackInfo, stream), localExecutor);
+            processDelegate(new MpegAudioTrack(trackInfo, stream), localExecutor);
         }
-    }
-
-    protected String getPlaybackUrl() {
-        return this.trackInfo.identifier;
-    }
-
-    @Override
-    public HttpAudioSourceManager getSourceManager() {
-        return manager;
     }
 }

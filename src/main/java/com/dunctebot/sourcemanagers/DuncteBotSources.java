@@ -18,6 +18,7 @@ package com.dunctebot.sourcemanagers;
 
 import com.dunctebot.sourcemanagers.clypit.ClypitAudioSourceManager;
 import com.dunctebot.sourcemanagers.extra.YoutubeContextFilterOverride;
+import com.dunctebot.sourcemanagers.getyarn.GetyarnAudioSourceManager;
 import com.dunctebot.sourcemanagers.pornhub.PornHubAudioSourceManager;
 import com.dunctebot.sourcemanagers.speech.SpeechAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -34,6 +35,7 @@ public class DuncteBotSources {
                 YoutubeContextFilterOverride.getOrCreate(updateYoutubeData, youtubeSource.getHttpInterface())
             );
 
+        playerManager.registerSourceManager(new GetyarnAudioSourceManager());
         playerManager.registerSourceManager(new ClypitAudioSourceManager());
         playerManager.registerSourceManager(new SpeechAudioSourceManager(speechLanguage));
         playerManager.registerSourceManager(new PornHubAudioSourceManager());
