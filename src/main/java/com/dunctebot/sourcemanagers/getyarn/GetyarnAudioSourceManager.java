@@ -49,7 +49,7 @@ public class GetyarnAudioSourceManager extends HttpAudioSourceManager {
         final String videoId = m.group(m.groupCount());
 
         final IdentifiedAudioReference ref = new IdentifiedAudioReference(
-            getMP4VideoUrl(videoId),
+            videoId,
             reference.identifier,
             videoId
         );
@@ -68,9 +68,5 @@ public class GetyarnAudioSourceManager extends HttpAudioSourceManager {
     @Override
     public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
         return new GetyarnAudioTrack(trackInfo, this);
-    }
-
-    private String getMP4VideoUrl(String videoId) {
-        return "https://y.yarn.co/" + videoId + ".mp4?v=0";
     }
 }

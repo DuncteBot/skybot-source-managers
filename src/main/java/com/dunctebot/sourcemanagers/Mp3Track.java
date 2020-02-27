@@ -21,8 +21,10 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
+import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.DelegatedAudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +53,12 @@ public class Mp3Track extends DelegatedAudioTrack {
         log.debug("Starting {} track from URL: {}", manager.getSourceName(), trackUrl);
         // Setting contentLength (last param) to null makes it default to Long.MAX_VALUE
         try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(trackUrl), null)) {
-            // TODO make a method to only return the class that we need
-            processDelegate(new Mp3AudioTrack(trackInfo, stream), localExecutor);
+            processDelegate(createAudioTrack(this.trackInfo, stream), localExecutor);
         }
+    }
+
+    protected InternalAudioTrack createAudioTrack(AudioTrackInfo trackInfo, SeekableInputStream stream) {
+        return new Mp3AudioTrack(trackInfo, stream);
     }
 
     protected String getPlaybackUrl() {

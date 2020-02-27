@@ -30,4 +30,9 @@ public class GetyarnAudioTrack extends MpegTrack {
     public AudioTrack makeClone() {
         return new GetyarnAudioTrack(trackInfo, getSourceManager());
     }
+
+    @Override
+    protected String getPlaybackUrl() {
+        return "https://y.yarn.co/" + this.trackInfo.identifier + ".mp4?v=0";
+    }
 }

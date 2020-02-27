@@ -20,7 +20,9 @@ import com.sedmelluq.discord.lavaplayer.container.mpeg.MpegAudioTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
+import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 
 import java.net.URI;
@@ -31,12 +33,7 @@ public abstract class MpegTrack extends Mp3Track {
     }
 
     @Override
-    protected void loadStream(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface) throws Exception {
-        final String trackUrl = getPlaybackUrl();
-        log.debug("Starting {} track from URL: {}", getSourceManager().getSourceName(), trackUrl);
-        // Setting contentLength (last param) to null makes it default to Long.MAX_VALUE
-        try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(trackUrl), null)) {
-            processDelegate(new MpegAudioTrack(trackInfo, stream), localExecutor);
-        }
+    protected InternalAudioTrack createAudioTrack(AudioTrackInfo trackInfo, SeekableInputStream stream) {
+        return new MpegAudioTrack(trackInfo, stream);
     }
 }
