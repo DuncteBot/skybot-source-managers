@@ -185,6 +185,7 @@ public class PornHubAudioSourceManager implements AudioSourceManager, HttpConfig
     }*/
 
     private JsonBrowser getVideoInfo(String html) throws IOException {
+        // flashvars_130837711['mediaDefinitions'][0]['videoUrl']
         final Matcher matcher = VIDEO_INFO_REGEX.matcher(html);
 
         if (matcher.find()) {
