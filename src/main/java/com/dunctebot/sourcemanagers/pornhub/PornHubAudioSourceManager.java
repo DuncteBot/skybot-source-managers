@@ -16,18 +16,14 @@
 
 package com.dunctebot.sourcemanagers.pornhub;
 
+import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.AudioTrackInfoWithImage;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.http.HttpContextFilter;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpConfigurable;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -35,36 +31,25 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PornHubAudioSourceManager implements AudioSourceManager, HttpConfigurable {
+public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final String DOMAIN_PATTERN = "https?://([a-z]+\\.)?pornhub\\.(com|net)";
     public static final Pattern DOMAIN_REGEX = Pattern.compile(DOMAIN_PATTERN);
     private static final Pattern VIDEO_REGEX = Pattern.compile("^" + DOMAIN_PATTERN + "/view_video\\.php\\?viewkey=([a-zA-Z0-9]+)(?:.*)$");
     private static final Pattern VIDEO_INFO_REGEX = Pattern.compile("var flashvars_\\d+ = (\\{.+})");
     private static final Pattern MODEL_INFO_REGEX = Pattern.compile("var MODEL_PROFILE = (\\{.+})");
-    private final HttpInterfaceManager httpInterfaceManager;
-
-    public PornHubAudioSourceManager() {
-        httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
-
-        httpInterfaceManager.setHttpContextFilter(new FuckCookies());
-    }
 
     @Override
     public String getSourceName() {
@@ -97,25 +82,6 @@ public class PornHubAudioSourceManager implements AudioSourceManager, HttpConfig
     @Override
     public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
         return new PornHubAudioTrack(trackInfo, this);
-    }
-
-    @Override
-    public void shutdown() {
-        ExceptionTools.closeWithWarnings(httpInterfaceManager);
-    }
-
-    @Override
-    public void configureRequests(Function<RequestConfig, RequestConfig> configurator) {
-        httpInterfaceManager.configureRequests(configurator);
-    }
-
-    @Override
-    public void configureBuilder(Consumer<HttpClientBuilder> configurator) {
-        httpInterfaceManager.configureBuilder(configurator);
-    }
-
-    public HttpInterface getHttpInterface() {
-        return httpInterfaceManager.getInterface();
     }
 
     private AudioItem loadItemOnce(AudioReference reference) throws IOException {
@@ -229,7 +195,7 @@ public class PornHubAudioSourceManager implements AudioSourceManager, HttpConfig
         throw new FriendlyException("This video is not available", Severity.COMMON, null);
     }
 
-    private static class FuckCookies implements HttpContextFilter {
+    public static class FuckCookies implements HttpContextFilter {
         @Override
         public void onContextOpen(HttpClientContext context) {
             CookieStore cookieStore = context.getCookieStore();

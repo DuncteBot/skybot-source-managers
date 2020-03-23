@@ -16,18 +16,19 @@
 
 package com.dunctebot.sourcemanagers.getyarn;
 
+import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.MpegTrack;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 public class GetyarnAudioTrack extends MpegTrack {
-    public GetyarnAudioTrack(AudioTrackInfo trackInfo, AudioSourceManager manager) {
+    public GetyarnAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource manager) {
         super(trackInfo, manager);
     }
 
     @Override
-    public AudioTrack makeClone() {
+    public AudioTrack makeShallowClone() {
         return new GetyarnAudioTrack(trackInfo, getSourceManager());
     }
 

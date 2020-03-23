@@ -17,8 +17,6 @@
 package com.dunctebot.sourcemanagers;
 
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
@@ -34,11 +32,11 @@ import java.net.URI;
 public class Mp3Track extends DelegatedAudioTrack {
     protected static final Logger log = LoggerFactory.getLogger(Mp3Track.class);
 
-    private final HttpAudioSourceManager manager;
+    private final AbstractDuncteBotHttpSource manager;
 
-    public Mp3Track(AudioTrackInfo trackInfo, AudioSourceManager manager) {
+    public Mp3Track(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource manager) {
         super(trackInfo);
-        this.manager = (HttpAudioSourceManager) manager;
+        this.manager = (AbstractDuncteBotHttpSource) manager;
     }
 
     @Override
@@ -66,7 +64,7 @@ public class Mp3Track extends DelegatedAudioTrack {
     }
 
     @Override
-    public HttpAudioSourceManager getSourceManager() {
+    public AbstractDuncteBotHttpSource getSourceManager() {
         return manager;
     }
 }

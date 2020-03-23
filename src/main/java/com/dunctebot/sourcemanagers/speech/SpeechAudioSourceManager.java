@@ -16,9 +16,9 @@
 
 package com.dunctebot.sourcemanagers.speech;
 
+import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.IdentifiedAudioReference;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -29,7 +29,7 @@ import java.io.DataOutput;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-public class SpeechAudioSourceManager extends HttpAudioSourceManager {
+public class SpeechAudioSourceManager extends AbstractDuncteBotHttpSource {
 
     private static final String PREFIX = "speak:";
     private static final String GOOGLE_TRANSLATE_URL = "https://translate.google.com/translate_tts" +

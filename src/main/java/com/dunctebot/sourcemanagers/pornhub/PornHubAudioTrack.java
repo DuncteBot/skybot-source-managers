@@ -16,9 +16,11 @@
 
 package com.dunctebot.sourcemanagers.pornhub;
 
+import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.MpegTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -37,7 +39,7 @@ public class PornHubAudioTrack extends MpegTrack {
     private static final Pattern MEDIA_STRING = Pattern.compile("(var\\s+?mediastring.+?)<\\/script>");
     private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9_]+ \\+ \\*\\/");
 
-    public PornHubAudioTrack(AudioTrackInfo trackInfo, PornHubAudioSourceManager sourceManager) {
+    public PornHubAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource sourceManager) {
         super(trackInfo, sourceManager);
     }
 
@@ -92,5 +94,10 @@ public class PornHubAudioTrack extends MpegTrack {
         }
 
         return String.join("", videoParts);
+    }
+
+    @Override
+    protected AudioTrack makeShallowClone() {
+        return new PornHubAudioTrack(trackInfo, getSourceManager());
     }
 }

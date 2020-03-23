@@ -16,18 +16,19 @@
 
 package com.dunctebot.sourcemanagers.clypit;
 
+import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.Mp3Track;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 public class ClypitAudioTrack extends Mp3Track {
 
-    ClypitAudioTrack(AudioTrackInfo trackInfo, ClypitAudioSourceManager manager) {
+    ClypitAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource manager) {
         super(trackInfo, manager);
     }
 
     @Override
-    public AudioTrack makeClone() {
-        return new ClypitAudioTrack(trackInfo, (ClypitAudioSourceManager) getSourceManager());
+    protected AudioTrack makeShallowClone() {
+        return new ClypitAudioTrack(trackInfo, getSourceManager());
     }
 }

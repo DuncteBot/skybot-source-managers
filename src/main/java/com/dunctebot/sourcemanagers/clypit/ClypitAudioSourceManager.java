@@ -16,9 +16,9 @@
 
 package com.dunctebot.sourcemanagers.clypit;
 
+import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.IdentifiedAudioReference;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
@@ -37,7 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ClypitAudioSourceManager extends HttpAudioSourceManager {
+public class ClypitAudioSourceManager extends AbstractDuncteBotHttpSource {
 
     private static final Pattern CLYPIT_REGEX = Pattern.compile("(http://|https://(www\\.)?)?clyp\\.it/(.*)");
 
@@ -73,11 +73,6 @@ public class ClypitAudioSourceManager extends HttpAudioSourceManager {
         }
     }
 
-    @Override
-    public void encodeTrack(AudioTrack track, DataOutput output) {
-        // empty because we don't need them
-    }
-
     // Switched from WebUtils to lavaplayer's stuff because that is better I guess
     private JsonBrowser fetchJson(String itemId) throws IOException {
         final HttpGet httpGet = new HttpGet("https://api.clyp.it/" + itemId);
@@ -100,7 +95,17 @@ public class ClypitAudioSourceManager extends HttpAudioSourceManager {
     }
 
     @Override
+    public boolean isTrackEncodable(AudioTrack track) {
+        return true;
+    }
+
+    @Override
     public AudioTrack decodeTrack(AudioTrackInfo trackInfo, DataInput input) {
         return new ClypitAudioTrack(trackInfo, this);
+    }
+
+    @Override
+    public void encodeTrack(AudioTrack track, DataOutput output) {
+        // empty because we don't need them
     }
 }

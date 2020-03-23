@@ -17,13 +17,12 @@
 package com.dunctebot.sourcemanagers;
 
 import com.sedmelluq.discord.lavaplayer.container.mpeg.MpegAudioTrack;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 
 public abstract class MpegTrack extends Mp3Track {
-    public MpegTrack(AudioTrackInfo trackInfo, AudioSourceManager manager) {
+    public MpegTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource manager) {
         super(trackInfo, manager);
     }
 

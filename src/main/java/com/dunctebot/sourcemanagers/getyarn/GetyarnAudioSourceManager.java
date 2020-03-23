@@ -16,6 +16,7 @@
 
 package com.dunctebot.sourcemanagers.getyarn;
 
+import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.IdentifiedAudioReference;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
@@ -30,7 +31,7 @@ import java.io.DataOutput;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GetyarnAudioSourceManager extends HttpAudioSourceManager {
+public class GetyarnAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final Pattern GETYARN_REGEX = Pattern.compile("(?:http://|https://(?:www\\.)?)?getyarn\\.io/yarn-clip/(.*)");
 
     @Override
@@ -58,6 +59,11 @@ public class GetyarnAudioSourceManager extends HttpAudioSourceManager {
             AudioTrackInfoBuilder.create(ref, null).build(),
             this
         );
+    }
+
+    @Override
+    public boolean isTrackEncodable(AudioTrack track) {
+        return true;
     }
 
     @Override

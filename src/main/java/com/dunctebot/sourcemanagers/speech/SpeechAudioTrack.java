@@ -16,18 +16,19 @@
 
 package com.dunctebot.sourcemanagers.speech;
 
+import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.Mp3Track;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 public class SpeechAudioTrack extends Mp3Track {
 
-    SpeechAudioTrack(AudioTrackInfo trackInfo, SpeechAudioSourceManager manager) {
+    SpeechAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource manager) {
         super(trackInfo, manager);
     }
 
     @Override
-    public AudioTrack makeClone() {
-        return new SpeechAudioTrack(trackInfo, (SpeechAudioSourceManager) getSourceManager());
+    public AudioTrack makeShallowClone() {
+        return new SpeechAudioTrack(trackInfo, getSourceManager());
     }
 }
