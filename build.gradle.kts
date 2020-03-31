@@ -44,10 +44,13 @@ dependencies {
     implementation(group = "com.github.duncte123", name = "lavaplayer", version = "dd595a1")
 //    api(group = "com.sedmelluq", name = "lavaplayer", version = "1.3.33")
     implementation(group = "io.sentry", name = "sentry-logback", version = "1.7.17")
+
+    implementation(group = "com.google.code.findbugs", name = "jsr305", version = "3.0.2")
 }
 
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 tasks.withType<Wrapper> {
