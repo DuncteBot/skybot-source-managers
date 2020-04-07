@@ -36,7 +36,7 @@ public class Mp3Track extends DelegatedAudioTrack {
 
     public Mp3Track(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource manager) {
         super(trackInfo);
-        this.manager = (AbstractDuncteBotHttpSource) manager;
+        this.manager = manager;
     }
 
     @Override
@@ -50,13 +50,17 @@ public class Mp3Track extends DelegatedAudioTrack {
         final String trackUrl = getPlaybackUrl();
         log.debug("Starting {} track from URL: {}", manager.getSourceName(), trackUrl);
         // Setting contentLength (last param) to null makes it default to Long.MAX_VALUE
-        try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(trackUrl), null)) {
+        try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(trackUrl), this.getTrackDuration())) {
             processDelegate(createAudioTrack(this.trackInfo, stream), localExecutor);
         }
     }
 
     protected InternalAudioTrack createAudioTrack(AudioTrackInfo trackInfo, SeekableInputStream stream) {
         return new Mp3AudioTrack(trackInfo, stream);
+    }
+
+    protected long getTrackDuration() {
+        return this.trackInfo.length;
     }
 
     protected String getPlaybackUrl() {

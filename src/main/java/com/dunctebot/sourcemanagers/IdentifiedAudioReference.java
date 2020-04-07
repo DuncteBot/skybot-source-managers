@@ -16,6 +16,7 @@
 
 package com.dunctebot.sourcemanagers;
 
+import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 
 public class IdentifiedAudioReference extends AudioReference {
@@ -26,6 +27,11 @@ public class IdentifiedAudioReference extends AudioReference {
         super(identifier, title);
 
         this.uri = uri;
+    }
+
+    @Override
+    public Long getLength() {
+        return Units.CONTENT_LENGTH_UNKNOWN;
     }
 
     @Override
