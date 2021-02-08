@@ -18,7 +18,7 @@ package com.dunctebot.sourcemanagers.reddit;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.AudioTrackInfoWithImage;
-import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
@@ -60,7 +60,7 @@ public class RedditAudioSourceManager extends AbstractDuncteBotHttpSource {
     }
 
     @Override
-    public AudioItem loadItem(DefaultAudioPlayerManager manager, AudioReference reference) {
+    public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
         final String identifier = reference.identifier;
         final Matcher fullLink = FULL_LINK_REGEX.matcher(identifier);
 

@@ -18,7 +18,7 @@ package com.dunctebot.sourcemanagers.speech;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.IdentifiedAudioReference;
-import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -55,7 +55,7 @@ public class SpeechAudioSourceManager extends AbstractDuncteBotHttpSource {
     }
 
     @Override
-    public AudioItem loadItem(DefaultAudioPlayerManager manager, AudioReference reference) {
+    public AudioItem loadItem(AudioPlayerManager manager, AudioReference reference) {
         // We check if it's larger so we don't send requests of nothing
         if (!reference.identifier.startsWith(PREFIX) || reference.identifier.length() <= PREFIX.length()) {
             return null;
