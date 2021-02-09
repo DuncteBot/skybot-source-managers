@@ -77,16 +77,16 @@ build.apply {
 publishing {
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/DuncteBot/skybot-source-managers")
+            name = "jfrog"
+            url = uri("https://duncte123.jfrog.io/artifactory/maven/")
             credentials {
                 username = System.getenv("USERNAME")
-                password = System.getenv("TOKEN")
+                password = System.getenv("PASSWORD")
             }
         }
     }
     publications {
-        register<MavenPublication>("gpr") {
+        register<MavenPublication>("jfrog") {
             pom {
                 name.set(archivesBaseName)
                 description.set("Source managers for skybot")
@@ -126,7 +126,7 @@ publish.apply {
     dependsOn(build)
 
     onlyIf {
-        System.getenv("USERNAME") != null && System.getenv("TOKEN") != null
+        System.getenv("USERNAME") != null && System.getenv("PASSWORD") != null
     }
 }
 
