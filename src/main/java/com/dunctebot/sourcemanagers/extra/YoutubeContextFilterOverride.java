@@ -111,7 +111,6 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
         request.setHeader("x-youtube-client-version", youtubeVersionData.getVersion());
         request.setHeader("x-youtube-page-cl", youtubeVersionData.getPageCl());
         request.setHeader("x-youtube-page-label", youtubeVersionData.getLabel());
-        request.setHeader("x-youtube-identity-token", youtubeVersionData.getIdToken());
     }
 
     @Override
