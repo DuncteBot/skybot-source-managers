@@ -23,19 +23,19 @@ public class YoutubeVersionData {
     /* INNERTUBE_CONTEXT_CLIENT_VERSION  x-youtube-client-version */
     private final String version;
     /* VARIANTS_CHECKSUM  x-youtube-variants-checksum */
-    private final String checksum;
+    //private final String checksum;
     /* PAGE_BUILD_LABEL  x-youtube-page-label */
     private final String label;
     /* ID_TOKEN  x-youtube-identity-token */
-//    private final String idToken;
+    private final String idToken;
     /* PAGE_CL  x-youtube-page-cl */
     private final String pageCl;
     /* DEVICE  x-youtube-device */
 //    private final String device;
 
-    public YoutubeVersionData(String version, String checksum, String label, String pageCl) {
+    public YoutubeVersionData(String version, String idToken, String label, String pageCl) {
         this.version = version;
-        this.checksum = checksum;
+        this.idToken = idToken;
         this.label = label;
         this.pageCl = pageCl;
     }
@@ -44,8 +44,8 @@ public class YoutubeVersionData {
         return version;
     }
 
-    public String getChecksum() {
-        return checksum;
+    public String getIdToken() {
+        return idToken;
     }
 
     public String getLabel() {
@@ -60,7 +60,7 @@ public class YoutubeVersionData {
     public String toString() {
         return "YoutubeVersionData{" +
                 "version='" + version + '\'' +
-                ", checksum='" + checksum + '\'' +
+                ", idToken='" + idToken + '\'' +
                 ", label='" + label + '\'' +
                 ", pageCl='" + pageCl + '\'' +
                 '}';
@@ -69,7 +69,7 @@ public class YoutubeVersionData {
     public static YoutubeVersionData fromBrowser(JsonBrowser json) {
         return new YoutubeVersionData(
                 json.get("INNERTUBE_CONTEXT_CLIENT_VERSION").safeText(),
-                json.get("VARIANTS_CHECKSUM").safeText(),
+                json.get("ID_TOKEN").safeText(),
                 json.get("PAGE_BUILD_LABEL").safeText(),
                 json.get("PAGE_CL").safeText()
         );

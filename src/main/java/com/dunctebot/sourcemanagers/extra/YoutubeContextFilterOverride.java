@@ -35,9 +35,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(YoutubeContextFilterOverride.class);
+    private static final Pattern YOUTUBE_INFO_REGEX = Pattern.compile("window\\.ytplayer=\\{\\};\\n?ytcfg\\.set\\((.*)\\);");
     private YoutubeVersionData youtubeVersionData = null;
     private final HttpInterface httpInterface;
     private final ScheduledExecutorService dataUpdateThread = Executors.newSingleThreadScheduledExecutor((r) -> {
@@ -71,6 +74,7 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
             logger.info("New youtube version data {}", this.youtubeVersionData);
         } catch (IOException e) {
             Sentry.capture(e);
+            logger.error("Failed to capture youtube data", e);
         }
     }
 
@@ -81,12 +85,18 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
         try (final CloseableHttpResponse response = this.httpInterface.execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
 
-            final String extracted = DataFormatTools.extractBetween(html,
-                "window.ytplayer = {};ytcfg.set(",
-                ");ytcfg.set(");
-            final JsonBrowser json = JsonBrowser.parse(extracted);
+            final Matcher matcher = YOUTUBE_INFO_REGEX.matcher(html);
 
-            return YoutubeVersionData.fromBrowser(json);
+            if (matcher.find()) {
+                final String extracted = matcher.group(matcher.groupCount())
+                    .trim()
+                    .replaceAll("undefined", "null");
+                final JsonBrowser json = JsonBrowser.parse(extracted);
+
+                return YoutubeVersionData.fromBrowser(json);
+            }
+
+            return null;
         }
     }
 
@@ -101,7 +111,7 @@ public class YoutubeContextFilterOverride extends YoutubeHttpContextFilter imple
         request.setHeader("x-youtube-client-version", youtubeVersionData.getVersion());
         request.setHeader("x-youtube-page-cl", youtubeVersionData.getPageCl());
         request.setHeader("x-youtube-page-label", youtubeVersionData.getLabel());
-        request.setHeader("x-youtube-variants-checksum", youtubeVersionData.getChecksum());
+        request.setHeader("x-youtube-identity-token", youtubeVersionData.getIdToken());
     }
 
     @Override
