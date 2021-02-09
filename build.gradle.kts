@@ -21,7 +21,7 @@ plugins {
     `java-library`
     `maven-publish`
 
-    id("com.github.breadmoirai.github-release") version "2.2.12"
+//    id("com.github.breadmoirai.github-release") version "2.2.12"
 }
 
 project.group = "com.dunctebot"
@@ -58,6 +58,7 @@ tasks.withType<Wrapper> {
 val jar: Jar by tasks
 val build: Task by tasks
 val clean: Task by tasks
+val publish: Task by tasks
 
 val sourcesJar = task<Jar>("sourcesJar") {
     archiveClassifier.set("sources")
@@ -74,8 +75,18 @@ build.apply {
 }
 
 publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/DuncteBot/skybot-source-managers")
+            credentials {
+                username = System.getenv("USERNAME")
+                password = System.getenv("TOKEN")
+            }
+        }
+    }
     publications {
-        create<MavenPublication>("mavenJava") {
+        register<MavenPublication>("gpr") {
             pom {
                 name.set(archivesBaseName)
                 description.set("Source managers for skybot")
@@ -111,7 +122,15 @@ publishing {
     }
 }
 
-githubRelease {
+publish.apply {
+    dependsOn(build)
+
+    onlyIf {
+        System.getenv("USERNAME") != null && System.getenv("TOKEN") != null
+    }
+}
+
+/*githubRelease {
     token(System.getenv("GITHUB_TOKEN"))
     owner("DuncteBot")
     repo("skybot-source-managers")
@@ -119,4 +138,4 @@ githubRelease {
     overwrite(false)
     prerelease(false)
     body(changelog())
-}
+}*/
