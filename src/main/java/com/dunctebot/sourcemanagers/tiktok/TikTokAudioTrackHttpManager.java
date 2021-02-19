@@ -110,10 +110,12 @@ public class TikTokAudioTrackHttpManager {
 
             System.out.println("test " + testCookie);
 
-            request.setHeader("cookie", testCookie);
+            //request.setHeader("cookie", testCookie);
 
 
-            request.setHeader("cookie", cookie);
+            if (cookie != null) {
+                request.setHeader("cookie", cookie);
+            }
 
             request.setHeader("Referer", "https://www.tiktok.com/");
         }

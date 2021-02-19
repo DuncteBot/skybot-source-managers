@@ -30,9 +30,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.regex.Matcher;
 
 import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
@@ -73,6 +76,13 @@ public class TikTokAudioTrack extends MpegTrack {
         log.debug("Starting {} track from URL: {}", getSourceManager().getSourceName(), trackUrl);
         // Setting contentLength (last param) to null makes it default to Long.MAX_VALUE
         try (final CopyOfPersistentHttpStream stream = new CopyOfPersistentHttpStream(httpInterface, new URI(trackUrl), this.getTrackDuration())) {
+            // dump the stream
+            Files.copy(
+                stream,
+                new File("DUMP.raw").toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            );
+
             processDelegate(createAudioTrack(this.trackInfo, stream), localExecutor);
         }
     }
