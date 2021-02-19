@@ -146,10 +146,6 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
         );
     }
 
-    /*private PornHubAudioTrack buildAudioTrack(AudioTrackInfoWithImage info) {
-        return new PornHubAudioTrack(info, this);
-    }*/
-
     private JsonBrowser getVideoInfo(String html) throws IOException {
         // flashvars_130837711['mediaDefinitions'][0]['videoUrl']
         final Matcher matcher = VIDEO_INFO_REGEX.matcher(html);

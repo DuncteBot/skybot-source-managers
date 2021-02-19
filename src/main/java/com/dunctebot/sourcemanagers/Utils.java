@@ -16,10 +16,19 @@
 
 package com.dunctebot.sourcemanagers;
 
+import org.apache.http.client.methods.HttpGet;
+
 public class Utils {
 
     public static boolean isURL(String url) {
         return url.matches("^https?:\\/\\/[-a-zA-Z0-9+&@#\\/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#\\/%=~_|]");
+    }
+
+    public static void fakeChrome(HttpGet httpGet) {
+        httpGet.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+        httpGet.setHeader("dnt", "1");
+        httpGet.setHeader("upgrade-insecure-requests", "1");
+        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
     }
 
 }
