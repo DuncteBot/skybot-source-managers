@@ -16,7 +16,7 @@
 
 package com.dunctebot.sourcemanagers;
 
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.HttpRequest;
 
 public class Utils {
 
@@ -24,11 +24,18 @@ public class Utils {
         return url.matches("^https?:\\/\\/[-a-zA-Z0-9+&@#\\/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#\\/%=~_|]");
     }
 
-    public static void fakeChrome(HttpGet httpGet) {
-        httpGet.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
-        httpGet.setHeader("dnt", "1");
-        httpGet.setHeader("upgrade-insecure-requests", "1");
-        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
+    public static void fakeChrome(HttpRequest request) {
+        request.setHeader("dnt", "1");
+        request.setHeader("upgrade-insecure-requests", "1");
+        request.setHeader("Accept", "*/*");
+        request.setHeader("Accept-Encoding", "identity;q=1, *;q=0");
+        request.setHeader("Accept-Language", "en-US,en;q=0.9");
+        request.setHeader("sec-ch-ua", "\"Chromium\";v=\"88\", \"Google Chrome\";v=\"88\", \";Not A Brand\";v=\"99\"");
+        request.setHeader("sec-ch-ua-mobile", "?0");
+        request.setHeader("sec-fetch-dest", "video");
+        request.setHeader("sec-fetch-mode", "no-cors");
+        request.setHeader("sec-fetch-site", "cross-site");
+        request.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
     }
 
 }

@@ -51,12 +51,9 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final String BASE = "https:\\/\\/(?:www\\.|m\\.)?tiktok\\.com";
     private static final String USER = "@(?<user>[a-z0-9A-Z_-]+)";
     private static final String VIDEO = "(?<video>[0-9]+)";
-    private static final Pattern VIDEO_REGEX = Pattern.compile("^" + BASE + "\\/" + USER + "\\/video\\/" + VIDEO + "(?:.*)$");
+    protected static final Pattern VIDEO_REGEX = Pattern.compile("^" + BASE + "\\/" + USER + "\\/video\\/" + VIDEO + "(?:.*)$");
     private static final Pattern JS_REGEX = Pattern.compile(
         "<script id=\"__NEXT_DATA__\" type=\"application/json\" crossorigin=\"anonymous\">(.*)<\\/script>");
-
-    // keep a cookie store in memory
-    private static final CookieStore cookieStore = new BasicCookieStore();
 
     public TikTokAudioSourceManager() {
         super(false);
@@ -144,42 +141,7 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
         }
     }
 
-    protected MetaData extractFromJson(String url) throws IOException {
-        final Matcher matcher = VIDEO_REGEX.matcher(url);
-
-        if (!matcher.matches()) {
-            throw new IOException("Url does not match tiktok anymore? wtf");
-        }
-
-        final String user = matcher.group("user");
-        final String video = matcher.group("video");
-
-        final HttpGet httpGet = new HttpGet(
-            "https://www.tiktok.com/node/share/video/@" + user + '/' + video
-        );
-
-        fakeChrome(httpGet);
-
-        try (final CloseableHttpResponse response = getHttpInterface().execute(httpGet)) {
-            final int statusCode = response.getStatusLine().getStatusCode();
-
-            if (statusCode != 200) {
-                if (statusCode == 302) { // most likely a 404
-                    return null;
-                }
-
-                throw new IOException("Unexpected status code for video page response: " + statusCode);
-            }
-
-            final String string = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-            final JsonBrowser json = JsonBrowser.parse(string);
-            final JsonBrowser base = json.get("itemInfo").get("itemStruct");
-
-            return getMetaData(url, base);
-        }
-    }
-
-    private MetaData getMetaData(String url, JsonBrowser base) {
+    protected static MetaData getMetaData(String url, JsonBrowser base) {
         final MetaData metaData = new MetaData();
 
         final JsonBrowser videoJson = base.get("video");
@@ -243,7 +205,7 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     public static class TikTokFilter implements HttpContextFilter {
         @Override
         public void onContextOpen(HttpClientContext context) {
-            context.setCookieStore(cookieStore);
+            //
         }
 
         @Override
@@ -254,8 +216,9 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
         @Override
         public void onRequest(HttpClientContext context, HttpUriRequest request, boolean isRepetition) {
             request.setHeader("Referer", "https://www.tiktok.com/");
+//            request.setHeader("Referer", request.getURI().toString());
 //            request.setHeader("Cookie", "tt_webid_v2=68" + makeId(16));
-            request.setHeader("Cookie", "tt_webid_v2=6930951741719643654; tt_webid=6930951741719643654; tt_csrf_token=oIE-pGapg3HhLpw4okMKouQE; bm_sz=1D7B2A5C3CE40E72AA2EDF957F29F996~YAAQ9vp7XCr1eB13AQAA4xpHugqAHEd7XhOGx7ADrTdeJSOGXeu3dMn3D8VK2tLtRzg3hHvrJu8zVhDHNbCVuJLKSYJNqO4hGQV1Wv5an9yjhHHni+OXPLEq2Z8jnH8CJJ9/mDYsa38iK4uhWoj1LWpTomOIDQ04lDQ/+ptIS/j2qymZYhNfGWfb1VPE5J7w; csrf_session_id=59db840225234be19cae4f09b50d65fc; R6kq3TV7=AH0eR7p3AQAAmf0BkeXsHuBeFsHfupJ0Uz70iJ1I3lFWmBwfxEqA2pyrlXEm|1|0|cb2e2a7b2c53e039465b82f493fb6a8309e2c12e; s_v_web_id=verify_klc9wz5x_RnKm6BBB_zGUE_4NIv_Amyp_iQnEJuUqiGiI; _abck=E031D1F37D5F1FB86124B6209D9D9621~0~YAAQ9vp7XGz1eB13AQAA1iNHugWhOYMPXUH6lDl8u7JREPlG5fKjcchhZuQSIyfQjQvGBkleZUGxcwOvdaTIJ+y7PCnijTNmCqpa/6h0blaIJsgUhSqxFtzGvSQ1AF3zLM/sEmBTL8272gZdv5wLZ9IDBs5EdeVwkXe83MN+Xkeu/A3Enkl7Ww7b2AJXPF7I1UAvljjXl4uSsay/UplBzWYd/GzwY1dewZj1aqbnGUk+UdMp+EHbpFO4DPVf4nAK6A76226/wxTKZlhwGtCD4wCY7IpCTpUrGT6eEy1pXduCTrZqQr02/rAwwi5aPJB+lHzkQulGH/pL4z1YOSc7GWXEG0vM4g==~-1~||-1||~-1; MONITOR_WEB_ID=6930951741719643654; bm_mi=C903011609E9246F5705C37DAB23438C~TLbWkU2lK07SJd4AEnfIep1qyvRMLo8dk0Ia/9JqiizV0Je06cnPffkpuaiXK1owXx8d+5hQfAxq2Rzyhn8vx/O9irH7i8jM/Opke2qkeGVwEMC/j3ZHQcKNXZ7bCeHicfR94IjDT90WeByQdRs21uGdiqzJVed+hx604WVvLCOmf+2PZCVvyZkT3YhzRvM3o/2vsL0mPH/le/mnnSkSaXvfSOjVC1Ejnj8TXkqGcHs=; bm_sv=43029414F4FFB9469BC50FFC27EABFD5~U8fwrdQmK9DaRqNyRL+2Q5LdaYbFXujau64u0KV6hPHmbobEUj/aPqfsDXY6x4R9B3lmiBdjlkVnCpthdFrrq7OwvK3aTwkKSCW2NbFxFCocthusvTtJ/9hC+CLQVf7cvScr9zPn8HJR2GhlAD8f+T4wQZRgfIss3JaqXs2ORxI=; ak_bmsc=16F1ADB9A7C2ACBFC688E7DA7FC6D44D5C7BFAF6853C0000E6AF2F6033BAB61D~plD1kBh5z0AC8DOgQbkp/GkJKVUKri6+qoZr1c9l6f6OqvIJ6HeOoLqrZERsUxmR1jYJl7lfkAqk/M+PLt5eDR+0nlZtibK459604wHaMzu3OYykuWT68qA6ahNblylWF1b57gOnB608r3uXGAaL6d7QE7ilVdGZDynW3ZpVifnt285Q+tsPrhf86cuG8Ltg4KYL527tXmj8jtpNmItmciM4UeAGrB2LT5vXkRGrXWJ4k18GlH4MXlMPLRsNBaA9vu");
+//            request.setHeader("Cookie", "tt_webid_v2=6930951741719643654; tt_webid=6930951741719643654; tt_csrf_token=oIE-pGapg3HhLpw4okMKouQE; bm_sz=1D7B2A5C3CE40E72AA2EDF957F29F996~YAAQ9vp7XCr1eB13AQAA4xpHugqAHEd7XhOGx7ADrTdeJSOGXeu3dMn3D8VK2tLtRzg3hHvrJu8zVhDHNbCVuJLKSYJNqO4hGQV1Wv5an9yjhHHni+OXPLEq2Z8jnH8CJJ9/mDYsa38iK4uhWoj1LWpTomOIDQ04lDQ/+ptIS/j2qymZYhNfGWfb1VPE5J7w; csrf_session_id=59db840225234be19cae4f09b50d65fc; R6kq3TV7=AH0eR7p3AQAAmf0BkeXsHuBeFsHfupJ0Uz70iJ1I3lFWmBwfxEqA2pyrlXEm|1|0|cb2e2a7b2c53e039465b82f493fb6a8309e2c12e; s_v_web_id=verify_klc9wz5x_RnKm6BBB_zGUE_4NIv_Amyp_iQnEJuUqiGiI; _abck=E031D1F37D5F1FB86124B6209D9D9621~0~YAAQ9vp7XGz1eB13AQAA1iNHugWhOYMPXUH6lDl8u7JREPlG5fKjcchhZuQSIyfQjQvGBkleZUGxcwOvdaTIJ+y7PCnijTNmCqpa/6h0blaIJsgUhSqxFtzGvSQ1AF3zLM/sEmBTL8272gZdv5wLZ9IDBs5EdeVwkXe83MN+Xkeu/A3Enkl7Ww7b2AJXPF7I1UAvljjXl4uSsay/UplBzWYd/GzwY1dewZj1aqbnGUk+UdMp+EHbpFO4DPVf4nAK6A76226/wxTKZlhwGtCD4wCY7IpCTpUrGT6eEy1pXduCTrZqQr02/rAwwi5aPJB+lHzkQulGH/pL4z1YOSc7GWXEG0vM4g==~-1~||-1||~-1; MONITOR_WEB_ID=6930951741719643654; bm_mi=C903011609E9246F5705C37DAB23438C~TLbWkU2lK07SJd4AEnfIep1qyvRMLo8dk0Ia/9JqiizV0Je06cnPffkpuaiXK1owXx8d+5hQfAxq2Rzyhn8vx/O9irH7i8jM/Opke2qkeGVwEMC/j3ZHQcKNXZ7bCeHicfR94IjDT90WeByQdRs21uGdiqzJVed+hx604WVvLCOmf+2PZCVvyZkT3YhzRvM3o/2vsL0mPH/le/mnnSkSaXvfSOjVC1Ejnj8TXkqGcHs=; bm_sv=43029414F4FFB9469BC50FFC27EABFD5~U8fwrdQmK9DaRqNyRL+2Q5LdaYbFXujau64u0KV6hPHmbobEUj/aPqfsDXY6x4R9B3lmiBdjlkVnCpthdFrrq7OwvK3aTwkKSCW2NbFxFCocthusvTtJ/9hC+CLQVf7cvScr9zPn8HJR2GhlAD8f+T4wQZRgfIss3JaqXs2ORxI=; ak_bmsc=16F1ADB9A7C2ACBFC688E7DA7FC6D44D5C7BFAF6853C0000E6AF2F6033BAB61D~plD1kBh5z0AC8DOgQbkp/GkJKVUKri6+qoZr1c9l6f6OqvIJ6HeOoLqrZERsUxmR1jYJl7lfkAqk/M+PLt5eDR+0nlZtibK459604wHaMzu3OYykuWT68qA6ahNblylWF1b57gOnB608r3uXGAaL6d7QE7ilVdGZDynW3ZpVifnt285Q+tsPrhf86cuG8Ltg4KYL527tXmj8jtpNmItmciM4UeAGrB2LT5vXkRGrXWJ4k18GlH4MXlMPLRsNBaA9vu");
 
             final String ua = fakeUserAgent();
 

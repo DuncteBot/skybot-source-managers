@@ -27,9 +27,7 @@ import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.net.URI;
-import java.nio.file.StandardCopyOption;
 
 public class Mp3Track extends DelegatedAudioTrack {
     protected static final Logger log = LoggerFactory.getLogger(Mp3Track.class);
@@ -53,13 +51,6 @@ public class Mp3Track extends DelegatedAudioTrack {
         log.debug("Starting {} track from URL: {}", manager.getSourceName(), trackUrl);
         // Setting contentLength (last param) to null makes it default to Long.MAX_VALUE
         try (PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(trackUrl), this.getTrackDuration())) {
-            File targetFile = new File("./TIKTOK_STREAM.raw");
-
-            java.nio.file.Files.copy(
-                stream,
-                targetFile.toPath(),
-                StandardCopyOption.REPLACE_EXISTING);
-
             processDelegate(createAudioTrack(this.trackInfo, stream), localExecutor);
         }
     }
