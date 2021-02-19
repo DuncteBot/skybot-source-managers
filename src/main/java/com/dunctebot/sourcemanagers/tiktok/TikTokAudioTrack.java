@@ -22,6 +22,7 @@ import com.dunctebot.sourcemanagers.tiktok.TikTokAudioSourceManager.MetaData;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
+import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
@@ -30,6 +31,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 
@@ -62,6 +64,16 @@ public class TikTokAudioTrack extends MpegTrack {
 
         try (HttpInterface httpInterface = this.httpManager.getHttpInterface()) {
             loadStream(executor, httpInterface);
+        }
+    }
+
+    @Override
+    protected void loadStream(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface) throws Exception {
+        final String trackUrl = getPlaybackUrl();
+        log.debug("Starting {} track from URL: {}", getSourceManager().getSourceName(), trackUrl);
+        // Setting contentLength (last param) to null makes it default to Long.MAX_VALUE
+        try (final CopyOfPersistentHttpStream stream = new CopyOfPersistentHttpStream(httpInterface, new URI(trackUrl), this.getTrackDuration())) {
+            processDelegate(createAudioTrack(this.trackInfo, stream), localExecutor);
         }
     }
 
@@ -103,5 +115,13 @@ public class TikTokAudioTrack extends MpegTrack {
     @Override
     protected AudioTrack makeShallowClone() {
         return new TikTokAudioTrack(this.trackInfo, getSourceManager());
+    }
+
+    private static class ErrorIsSuccessStream extends PersistentHttpStream {
+        public ErrorIsSuccessStream(HttpInterface httpInterface, URI contentUrl, Long contentLength) {
+            super(httpInterface, contentUrl, contentLength);
+        }
+
+
     }
 }
