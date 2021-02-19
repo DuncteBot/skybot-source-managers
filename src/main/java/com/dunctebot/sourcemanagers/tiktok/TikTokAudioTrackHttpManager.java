@@ -22,6 +22,7 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -30,9 +31,11 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.DefaultCookieSpec;
 
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,6 +68,7 @@ public class TikTokAudioTrackHttpManager {
                 final List<Cookie> cookies = new ArrayList<>();
 
                 for (final Header header : response.getHeaders("Set-Cookie")) {
+                    System.out.println(header);
                     cookies.addAll(cookieSpec.parse(header, origin));
                 }
 
@@ -93,11 +97,20 @@ public class TikTokAudioTrackHttpManager {
             // set standard headers
             fakeChrome(request);
 
-            request.setHeader("Referer", "https://www.tiktok.com/");
+            final String testCookie = context.getCookieStore()
+                .getCookies()
+                .stream()
+                .map((c) -> c.getName() + '=' + c.getValue())
+                .collect(Collectors.joining("; "));
 
-            if (cookie != null) {
-                request.setHeader("cookie", cookie);
-            }
+            System.out.println("test " + testCookie);
+
+            request.setHeader("cookie", testCookie);
+
+
+            request.setHeader("cookie", cookie);
+
+            request.setHeader("Referer", "https://www.tiktok.com/");
         }
 
         @Override
