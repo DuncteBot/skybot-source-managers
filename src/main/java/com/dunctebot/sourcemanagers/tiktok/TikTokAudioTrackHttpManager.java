@@ -46,14 +46,13 @@ public class TikTokAudioTrackHttpManager {
 
     protected final HttpInterfaceManager httpInterfaceManager;
     private final CookieSpec cookieSpec = new DefaultCookieSpec();
+    private final CookieStore cookieStore = new BasicCookieStore();
 
     public TikTokAudioTrackHttpManager() {
         httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 
-        CookieStore store = new BasicCookieStore();
-
         httpInterfaceManager.configureBuilder((builder) -> {
-            builder.setDefaultCookieStore(store);
+            builder.setDefaultCookieStore(cookieStore);
         });
 
         httpInterfaceManager.setHttpContextFilter(new TikTokFilter());
@@ -89,7 +88,7 @@ public class TikTokAudioTrackHttpManager {
     private class TikTokFilter implements HttpContextFilter {
         @Override
         public void onContextOpen(HttpClientContext context) {
-            //
+            context.setCookieStore(cookieStore);
         }
 
         @Override
