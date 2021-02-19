@@ -16,13 +16,10 @@
 
 package com.dunctebot.sourcemanagers.tiktok;
 
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.http.HttpContextFilter;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -31,16 +28,14 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
 
 import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
 
 public class TikTokAudioTrackHttpManager {
-    private List<Header> headers = null;
+    private Header cookie = null;
 
     protected final HttpInterfaceManager httpInterfaceManager;
 
@@ -63,9 +58,7 @@ public class TikTokAudioTrackHttpManager {
 
                 System.out.println(Arrays.toString(allHeaders));
 
-                this.headers = new ArrayList<>(
-                    Arrays.asList(response.getHeaders("set-cookie"))
-                );
+                this.cookie = response.getLastHeader("set-cookie");
             }
         }
     }
@@ -83,12 +76,12 @@ public class TikTokAudioTrackHttpManager {
 
         @Override
         public void onRequest(HttpClientContext context, HttpUriRequest request, boolean isRepetition) {
-            if (headers != null) {
-                headers.forEach(request::addHeader);
-            }
-
             // set standard headers
             fakeChrome(request);
+
+            if (cookie != null) {
+                request.setHeader("cookie", cookie.getValue());
+            }
         }
 
         @Override
