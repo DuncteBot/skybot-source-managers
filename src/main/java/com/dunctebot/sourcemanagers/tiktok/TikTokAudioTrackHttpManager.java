@@ -20,6 +20,7 @@ import com.sedmelluq.discord.lavaplayer.tools.http.HttpContextFilter;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -32,6 +33,7 @@ import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,9 +60,13 @@ public class TikTokAudioTrackHttpManager {
             final HttpGet httpGet = new HttpGet("https://www.tiktok.com/");
 
             try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
-                CookieOrigin origin = new CookieOrigin(".tiktok.com", 443, "/", true);
+                final CookieOrigin origin = new CookieOrigin(".tiktok.com", 443, "/", true);
 
-                final List<Cookie> cookies = cookieSpec.parse(response.getLastHeader("Set-Cookie"), origin);
+                final List<Cookie> cookies = new ArrayList<>();
+
+                for (final Header header : response.getHeaders("Set-Cookie")) {
+                    cookies.addAll(cookieSpec.parse(header, origin));
+                }
 
                 System.out.println(cookies);
 
