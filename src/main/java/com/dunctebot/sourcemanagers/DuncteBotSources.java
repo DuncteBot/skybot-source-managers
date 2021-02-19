@@ -22,6 +22,7 @@ import com.dunctebot.sourcemanagers.getyarn.GetyarnAudioSourceManager;
 import com.dunctebot.sourcemanagers.pornhub.PornHubAudioSourceManager;
 import com.dunctebot.sourcemanagers.reddit.RedditAudioSourceManager;
 import com.dunctebot.sourcemanagers.speech.SpeechAudioSourceManager;
+import com.dunctebot.sourcemanagers.tiktok.TikTokAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 
@@ -41,6 +42,7 @@ public class DuncteBotSources {
         playerManager.registerSourceManager(new SpeechAudioSourceManager(speechLanguage));
         playerManager.registerSourceManager(new PornHubAudioSourceManager());
         playerManager.registerSourceManager(new RedditAudioSourceManager());
+        playerManager.registerSourceManager(new TikTokAudioSourceManager());
 
     }
 }
