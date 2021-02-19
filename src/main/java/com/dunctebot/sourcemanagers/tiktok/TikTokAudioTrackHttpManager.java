@@ -20,24 +20,28 @@ import com.sedmelluq.discord.lavaplayer.tools.http.HttpContextFilter;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieSpec;
+import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.impl.cookie.BrowserCompatSpec;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
 
 public class TikTokAudioTrackHttpManager {
-    private Header cookie = null;
+    private String cookie = null;
 
     protected final HttpInterfaceManager httpInterfaceManager;
+    private final CookieSpec cookieSpec = new BrowserCompatSpec();
 
     public TikTokAudioTrackHttpManager() {
         httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
@@ -49,16 +53,20 @@ public class TikTokAudioTrackHttpManager {
         return httpInterfaceManager.getInterface();
     }
 
-    protected void loadCookies() throws IOException {
+    protected void loadCookies() throws IOException, MalformedCookieException {
         try (final HttpInterface httpInterface = httpInterfaceManager.getInterface()) {
             final HttpGet httpGet = new HttpGet("https://www.tiktok.com/");
 
             try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
-                final Header[] allHeaders = response.getAllHeaders();
+                CookieOrigin origin = new CookieOrigin(".tiktok.com", 443, "/", true);
 
-                System.out.println(Arrays.toString(allHeaders));
+                final List<Cookie> cookies = cookieSpec.parse(response.getLastHeader("Set-Cookie"), origin);
 
-                this.cookie = response.getLastHeader("set-cookie");
+                System.out.println(cookies);
+
+                this.cookie = cookies.stream()
+                    .map((c) -> c.getName() + '=' + c.getValue())
+                    .collect(Collectors.joining("; "));
             }
         }
     }
@@ -80,7 +88,7 @@ public class TikTokAudioTrackHttpManager {
             fakeChrome(request);
 
             if (cookie != null) {
-                request.setHeader("cookie", cookie.getValue());
+                request.setHeader("cookie", cookie);
             }
         }
 
