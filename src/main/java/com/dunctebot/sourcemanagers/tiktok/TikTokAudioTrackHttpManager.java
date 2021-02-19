@@ -30,7 +30,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.impl.cookie.BrowserCompatSpec;
+import org.apache.http.impl.cookie.DefaultCookieSpec;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class TikTokAudioTrackHttpManager {
     private String cookie = null;
 
     protected final HttpInterfaceManager httpInterfaceManager;
-    private final CookieSpec cookieSpec = new BrowserCompatSpec();
+    private final CookieSpec cookieSpec = new DefaultCookieSpec();
 
     public TikTokAudioTrackHttpManager() {
         httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
@@ -92,6 +92,8 @@ public class TikTokAudioTrackHttpManager {
         public void onRequest(HttpClientContext context, HttpUriRequest request, boolean isRepetition) {
             // set standard headers
             fakeChrome(request);
+
+            request.setHeader("Referer", "https://www.tiktok.com/");
 
             if (cookie != null) {
                 request.setHeader("cookie", cookie);

@@ -67,6 +67,8 @@ public class CopyOfPersistentHttpStream extends SeekableInputStream implements A
     private static boolean validateStatusCode(HttpResponse response, boolean returnOnServerError) {
         int statusCode = response.getStatusLine().getStatusCode();
 
+        System.out.println("STATUS CODE IS " + statusCode);
+
         // TIKTOK :D
         if (statusCode == 403) {
             return true;
