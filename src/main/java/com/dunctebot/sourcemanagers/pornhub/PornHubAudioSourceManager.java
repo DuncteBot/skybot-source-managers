@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Duncan "duncte123" Sterken
+ * Copyright 2021 Duncan "duncte123" Sterken
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
