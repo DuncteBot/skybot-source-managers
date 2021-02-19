@@ -30,7 +30,7 @@ import java.util.function.Function;
 
 public abstract class AbstractDuncteBotHttpSource implements AudioSourceManager, HttpConfigurable {
 
-    private final HttpInterfaceManager httpInterfaceManager;
+    protected final HttpInterfaceManager httpInterfaceManager;
 
     public AbstractDuncteBotHttpSource() {
         this(true);
