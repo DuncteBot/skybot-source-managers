@@ -42,7 +42,7 @@ import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
 
 public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final String BASE = "https:\\/\\/(?:www\\.|m\\.)?tiktok\\.com";
-    private static final String USER = "@(?<user>[a-z0-9A-Z_\\-.]+)";
+    private static final String USER = "@(?<user>[^/]+)";
     private static final String VIDEO = "(?<video>[0-9]+)";
     protected static final Pattern VIDEO_REGEX = Pattern.compile("^" + BASE + "\\/" + USER + "\\/video\\/" + VIDEO + "(?:.*)$");
     private static final Pattern JS_REGEX = Pattern.compile(
