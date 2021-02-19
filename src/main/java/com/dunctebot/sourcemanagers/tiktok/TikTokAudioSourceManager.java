@@ -48,6 +48,10 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final Pattern JS_REGEX = Pattern.compile(
         "<script id=\"__NEXT_DATA__\" type=\"application/json\" crossorigin=\"anonymous\">(.*)<\\/script>");
 
+    public TikTokAudioSourceManager() {
+        super(false);
+    }
+
     @Override
     public String getSourceName() {
         return "tiktok";
@@ -93,6 +97,30 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     }
 
     protected MetaData extractData(String url) throws IOException {
+        final JsonBrowser json = extractDataRaw(url);
+        final JsonBrowser base = json.get("props").get("pageProps").get("itemInfo").get("itemStruct");
+        final MetaData metaData = new MetaData();
+
+        final JsonBrowser video = base.get("video");
+
+        metaData.pageUrl = url;
+        metaData.videoId = video.get("id").safeText();
+        metaData.cover = video.get("cover").safeText();
+        metaData.title = video.get("desc").safeText();
+
+        metaData.uri = video.get("playAddr").safeText();
+        metaData.duration = Integer.parseInt(video.get("duration").safeText());
+
+        final JsonBrowser author = base.get("author");
+
+        metaData.uniqueId = author.get("uniqueId").safeText();
+
+        System.out.println(metaData);
+
+        return metaData;
+    }
+
+    protected JsonBrowser extractDataRaw(String url) throws IOException {
         final HttpGet httpGet = new HttpGet(url);
 
         fakeChrome(httpGet);
@@ -117,30 +145,11 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
                 throw new FriendlyException("Failed to find data for tiktok video", Severity.SUSPICIOUS, null);
             }
 
-            final JsonBrowser json = JsonBrowser.parse(matcher.group(1).trim());
-            final JsonBrowser base = json.get("props").get("pageProps").get("itemInfo").get("itemStruct");
-            final MetaData metaData = new MetaData();
-
-            final JsonBrowser video = base.get("video");
-
-            metaData.pageUrl = httpGet.getURI().toString();
-            metaData.videoId = video.get("id").safeText();
-            metaData.cover = video.get("cover").safeText();
-            metaData.title = video.get("desc").safeText();
-            metaData.uri = video.get("playAddr").safeText();
-            metaData.duration = Integer.parseInt(video.get("duration").safeText());
-
-            final JsonBrowser author = base.get("author");
-
-            metaData.uniqueId = author.get("uniqueId").safeText();
-
-            System.out.println(metaData);
-
-            return metaData;
+            return JsonBrowser.parse(matcher.group(1).trim());
         }
     }
 
-    protected static class MetaData {
+    private static class MetaData {
         // video
         String cover; // image url
         String pageUrl;

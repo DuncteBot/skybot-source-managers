@@ -33,9 +33,15 @@ public abstract class AbstractDuncteBotHttpSource implements AudioSourceManager,
     private final HttpInterfaceManager httpInterfaceManager;
 
     public AbstractDuncteBotHttpSource() {
+        this(true);
+    }
+
+    public AbstractDuncteBotHttpSource(boolean withoutCookies) {
         httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
 
-        httpInterfaceManager.setHttpContextFilter(new PornHubAudioSourceManager.FuckCookies());
+        if (withoutCookies) {
+            httpInterfaceManager.setHttpContextFilter(new PornHubAudioSourceManager.FuckCookies());
+        }
     }
 
     public HttpInterface getHttpInterface() {

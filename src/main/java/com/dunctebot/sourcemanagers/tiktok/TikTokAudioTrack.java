@@ -18,8 +18,8 @@ package com.dunctebot.sourcemanagers.tiktok;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.MpegTrack;
-import com.dunctebot.sourcemanagers.tiktok.TikTokAudioSourceManager.MetaData;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
@@ -35,9 +35,18 @@ public class TikTokAudioTrack extends MpegTrack {
     @Override
     protected String getPlaybackUrl() {
         try {
-            final MetaData metaData = ((TikTokAudioSourceManager) getSourceManager()).extractData(this.trackInfo.uri);
+            final JsonBrowser json = ((TikTokAudioSourceManager) getSourceManager()).extractDataRaw(
+                "https://www.tiktok.com/embed/v2/" + this.trackInfo.identifier + "?lang=en-US"
+            );
 
-            return metaData.uri;
+            return json.get("props")
+                .get("pageProps")
+                .get("videoData")
+                .get("itemInfos")
+                .get("video")
+                .get("urls")
+                .index(0)
+                .safeText();
         } catch (IOException e) {
             throw new FriendlyException("Could not load TikTok video", SUSPICIOUS, e);
         }
