@@ -35,7 +35,6 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.DefaultCookieSpec;
 
 import java.io.IOException;
-import java.net.HttpCookie;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,6 +49,12 @@ public class TikTokAudioTrackHttpManager {
 
     public TikTokAudioTrackHttpManager() {
         httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+
+        CookieStore store = new BasicCookieStore();
+
+        httpInterfaceManager.configureBuilder((builder) -> {
+            builder.setDefaultCookieStore(store);
+        });
 
         httpInterfaceManager.setHttpContextFilter(new TikTokFilter());
     }
