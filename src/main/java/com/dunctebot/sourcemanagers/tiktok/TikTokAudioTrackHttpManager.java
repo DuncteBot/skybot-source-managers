@@ -33,7 +33,6 @@ import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
-import org.apache.http.impl.cookie.DefaultCookieSpec;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,7 +45,7 @@ public class TikTokAudioTrackHttpManager {
     private String cookie = null;
 
     protected final HttpInterfaceManager httpInterfaceManager;
-    private final CookieSpec cookieSpec = new BrowserCompatSpec();
+    private final CookieSpec cookieSpec = new BrowserCompatSpec(); // DefaultCookieSpec does not parse
     private final CookieStore cookieStore = new BasicCookieStore();
 
     public TikTokAudioTrackHttpManager() {
@@ -73,11 +72,8 @@ public class TikTokAudioTrackHttpManager {
                 final List<Cookie> cookies = new ArrayList<>();
 
                 for (final Header header : response.getHeaders("Set-Cookie")) {
-                    System.out.println(header);
                     cookies.addAll(cookieSpec.parse(header, origin));
                 }
-
-                System.out.println(cookies);
 
                 this.cookie = cookies.stream()
                     .map((c) -> c.getName() + '=' + c.getValue())
@@ -102,6 +98,7 @@ public class TikTokAudioTrackHttpManager {
             // set standard headers
             fakeChrome(request);
 
+            // TODO: set these cookies instead?
             final String testCookie = context.getCookieStore()
                 .getCookies()
                 .stream()
@@ -111,7 +108,6 @@ public class TikTokAudioTrackHttpManager {
             System.out.println("test " + testCookie);
 
             //request.setHeader("cookie", testCookie);
-
 
             if (cookie != null) {
                 request.setHeader("cookie", cookie);
