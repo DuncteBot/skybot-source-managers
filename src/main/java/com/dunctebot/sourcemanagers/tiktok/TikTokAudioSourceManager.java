@@ -30,10 +30,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.BasicCookieStore;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -52,6 +54,9 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final Pattern VIDEO_REGEX = Pattern.compile("^" + BASE + "\\/" + USER + "\\/video\\/" + VIDEO + "(?:.*)$");
     private static final Pattern JS_REGEX = Pattern.compile(
         "<script id=\"__NEXT_DATA__\" type=\"application/json\" crossorigin=\"anonymous\">(.*)<\\/script>");
+
+    // keep a cookie store in memory
+    private static final CookieStore cookieStore = new BasicCookieStore();
 
     public TikTokAudioSourceManager() {
         super(false);
@@ -238,7 +243,7 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     public static class TikTokFilter implements HttpContextFilter {
         @Override
         public void onContextOpen(HttpClientContext context) {
-            //
+            context.setCookieStore(cookieStore);
         }
 
         @Override
