@@ -32,6 +32,7 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.impl.cookie.DefaultCookieSpec;
 
 import java.io.IOException;
@@ -45,7 +46,7 @@ public class TikTokAudioTrackHttpManager {
     private String cookie = null;
 
     protected final HttpInterfaceManager httpInterfaceManager;
-    private final CookieSpec cookieSpec = new DefaultCookieSpec();
+    private final CookieSpec cookieSpec = new BrowserCompatSpec();
     private final CookieStore cookieStore = new BasicCookieStore();
 
     public TikTokAudioTrackHttpManager() {
