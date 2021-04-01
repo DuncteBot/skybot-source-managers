@@ -42,7 +42,7 @@ public class DuncteBotSources {
         playerManager.registerSourceManager(new SpeechAudioSourceManager(speechLanguage));
         playerManager.registerSourceManager(new PornHubAudioSourceManager());
         playerManager.registerSourceManager(new RedditAudioSourceManager());
-        playerManager.registerSourceManager(new TikTokAudioSourceManager());
+        //playerManager.registerSourceManager(new TikTokAudioSourceManager());
 
     }
 }

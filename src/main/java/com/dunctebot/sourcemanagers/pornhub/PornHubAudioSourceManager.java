@@ -23,19 +23,13 @@ import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.tools.http.HttpContextFilter;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.client.BasicCookieStore;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -147,7 +141,6 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
     }
 
     private JsonBrowser getVideoInfo(String html) throws IOException {
-        // flashvars_130837711['mediaDefinitions'][0]['videoUrl']
         final Matcher matcher = VIDEO_INFO_REGEX.matcher(html);
 
         if (matcher.find()) {
@@ -189,40 +182,5 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
 
     private void notAvailable() {
         throw new FriendlyException("This video is not available", Severity.COMMON, null);
-    }
-
-    public static class FuckCookies implements HttpContextFilter {
-        @Override
-        public void onContextOpen(HttpClientContext context) {
-            CookieStore cookieStore = context.getCookieStore();
-
-            if (cookieStore == null) {
-                cookieStore = new BasicCookieStore();
-                context.setCookieStore(cookieStore);
-            }
-
-            // Reset cookies for each sequence of requests.
-            cookieStore.clear();
-        }
-
-        @Override
-        public void onContextClose(HttpClientContext context) {
-            // Not used
-        }
-
-        @Override
-        public void onRequest(HttpClientContext context, HttpUriRequest request, boolean isRepetition) {
-            // Not used
-        }
-
-        @Override
-        public boolean onRequestResponse(HttpClientContext context, HttpUriRequest request, HttpResponse response) {
-            return false;
-        }
-
-        @Override
-        public boolean onRequestException(HttpClientContext context, HttpUriRequest request, Throwable error) {
-            return false;
-        }
     }
 }

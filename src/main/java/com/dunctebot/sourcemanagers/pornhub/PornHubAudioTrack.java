@@ -19,6 +19,7 @@ package com.dunctebot.sourcemanagers.pornhub;
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.MpegTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
@@ -33,11 +34,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.SUSPICIOUS;
+import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.*;
 
 public class PornHubAudioTrack extends MpegTrack {
     private static final Pattern MEDIA_STRING = Pattern.compile("(var\\s+?mediastring.+?)<\\/script>");
     private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9_]+ \\+ \\*\\/");
+    private static final Pattern VIDEO_SHOW = Pattern.compile("var\\s+?VIDEO_SHOW\\s+?=\\s+?([^;]+);?<\\/script>");
 
     public PornHubAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource sourceManager) {
         super(trackInfo, sourceManager);
@@ -52,26 +54,33 @@ public class PornHubAudioTrack extends MpegTrack {
         }
     }
 
-    private static String loadTrackUrl(AudioTrackInfo trackInfo, HttpInterface httpInterface) throws IOException {
-        final HttpGet httpGet = new HttpGet(trackInfo.identifier);
-
-        httpGet.setHeader("Cookie", "platform=tv");
+    private String loadTrackUrl(AudioTrackInfo trackInfo, HttpInterface httpInterface) throws IOException {
+        final HttpGet httpGet = createGet(trackInfo.identifier);
 
         try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
             final Matcher matcher = MEDIA_STRING.matcher(html);
 
-            if (!matcher.find()) {
-                throw new FriendlyException("Could not find media info", SUSPICIOUS, null);
+            if (matcher.find()) {
+                final String js = matcher.group(matcher.groupCount());
+
+                return parseJsValueToUrl(html, js);
             }
 
-            final String js = matcher.group(matcher.groupCount());
+            final Matcher videoMatcher = VIDEO_SHOW.matcher(html);
 
-            return parseJsValueToUrl(html, js);
+            if (videoMatcher.find()) {
+                final String js = videoMatcher.group(videoMatcher.groupCount());
+
+                return extractVideoFromVideoShow(js, httpInterface);
+            }
+
+
+            throw new FriendlyException("Could not find media info", SUSPICIOUS, null);
         }
     }
 
-    private static String parseJsValueToUrl(String htmlPage, String js) {
+    private String parseJsValueToUrl(String htmlPage, String js) {
         final String filteredJsValue = MEDIA_STRING_FILTER.matcher(js).replaceAll("");
         final String variables = filteredJsValue.split("=")[1].split(";")[0];
         final String[] items = variables.split("\\+");
@@ -94,6 +103,38 @@ public class PornHubAudioTrack extends MpegTrack {
         }
 
         return String.join("", videoParts);
+    }
+
+    private String extractVideoFromVideoShow(String obj, HttpInterface httpInterface) throws IOException {
+        final JsonBrowser browser = JsonBrowser.parse(obj);
+        final String mediaUrl = browser.get("mediaUrl").safeText();
+
+        final HttpGet mediaGet = createGet("https://www.pornhub.com" + mediaUrl);
+
+        try (final CloseableHttpResponse response = httpInterface.execute(mediaGet)) {
+            final String body = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+            final JsonBrowser json = JsonBrowser.parse(body);
+
+            if (!"OK".equals(json.get("status").safeText())) {
+                throw new FriendlyException("Pornhub video returned non OK status for video info", COMMON, null);
+            }
+
+            final String videoUrl = json.get("videoUrl").text();
+
+            if (videoUrl == null) {
+                throw new FriendlyException("Video url missing on playback page", FAULT, null);
+            }
+
+            return videoUrl;
+        }
+    }
+
+    private HttpGet createGet(String url) {
+        final HttpGet httpGet = new HttpGet(url);
+
+        httpGet.setHeader("Cookie", "platform=tv");
+
+        return httpGet;
     }
 
     @Override
