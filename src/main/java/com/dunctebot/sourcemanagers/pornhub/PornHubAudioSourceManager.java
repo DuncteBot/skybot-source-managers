@@ -45,6 +45,10 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final Pattern VIDEO_INFO_REGEX = Pattern.compile("var flashvars_\\d+ = (\\{.+})");
     private static final Pattern MODEL_INFO_REGEX = Pattern.compile("var MODEL_PROFILE = (\\{.+})");
 
+    public PornHubAudioSourceManager() {
+        super(false);
+    }
+
     @Override
     public String getSourceName() {
         return "pornhub";
