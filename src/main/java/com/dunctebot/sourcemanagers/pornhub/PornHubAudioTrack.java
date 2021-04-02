@@ -20,12 +20,17 @@ import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.MpegTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.cookie.BasicClientCookie;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -44,16 +49,56 @@ public class PornHubAudioTrack extends MpegTrack {
     private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9_]+ \\+ \\*\\/");
     private static final Pattern VIDEO_SHOW = Pattern.compile("var\\s+?VIDEO_SHOW\\s+?=\\s+?([^;]+);?<\\/script>");
 
+    private final HttpInterface httpInterface;
+
     public PornHubAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource sourceManager) {
         super(trackInfo, sourceManager);
+
+        final CookieStore cookieStore = new BasicCookieStore();
+
+        cookieStore.addCookie(new BasicClientCookie("platform", "tv"));
+        cookieStore.addCookie(new BasicClientCookie("age_verified", "1"));
+
+        final HttpInterfaceManager manager = HttpClientTools.createDefaultThreadLocalManager();
+        manager.configureBuilder(
+            (config) -> config.setDefaultCookieStore(cookieStore)
+        );
+
+        this.httpInterface = manager.getInterface();
     }
 
     @Override
     protected String getPlaybackUrl() {
         try {
-            return loadTrackUrl(this.trackInfo, this.getSourceManager().getHttpInterface());
+            return loadTrackUrl(this.trackInfo);
         } catch (IOException e) {
             throw new FriendlyException("Could not load PornHub video", SUSPICIOUS, e);
+        }
+    }
+
+    private String loadTrackUrl(AudioTrackInfo trackInfo) throws IOException {
+        final HttpGet httpGet = new HttpGet("https://www.pornhub.com/view_video.php?viewkey=" + trackInfo.identifier);
+
+        try (final CloseableHttpResponse response = this.httpInterface.execute(httpGet)) {
+            final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+            final Matcher matcher = MEDIA_STRING.matcher(html);
+
+            if (matcher.find()) {
+                final String js = matcher.group(matcher.groupCount());
+
+                return parseJsValueToUrl(html, js);
+            }
+
+            final Matcher videoMatcher = VIDEO_SHOW.matcher(html);
+
+            if (videoMatcher.find()) {
+                final String js = videoMatcher.group(videoMatcher.groupCount());
+
+                return extractVideoFromVideoShow(js, httpInterface);
+            }
+
+
+            throw new FriendlyException("Could not find media info", SUSPICIOUS, null);
         }
     }
 
@@ -109,16 +154,16 @@ public class PornHubAudioTrack extends MpegTrack {
             assn = assn.replaceFirst("var\\s+", "");
             final String[] parts = assn.split("=", 2);
 
-            jsVars.put(parts[0], parts[1]);
+            jsVars.put(parts[0], this.parseJsValue(parts[1], jsVars));
         }
 
         return jsVars;
     }
 
-    private String loadTrackUrl(AudioTrackInfo trackInfo, HttpInterface httpInterface) throws IOException {
-        final HttpGet httpGet = createGet("https://www.pornhub.com/view_video.php?viewkey=" + trackInfo.identifier);
+    private String loadTrackUrl_new(AudioTrackInfo trackInfo) throws IOException {
+        final HttpGet httpGet = new HttpGet("https://www.pornhub.com/view_video.php?viewkey=" + trackInfo.identifier);
 
-        try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
+        try (final CloseableHttpResponse response = this.httpInterface.execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
             final Map<String, String> jsVars = extractJsVars(html, FORMAT_PATTERN);
 
@@ -133,32 +178,6 @@ public class PornHubAudioTrack extends MpegTrack {
             }
 
             return "";
-        }
-    }
-
-    private String loadTrackUrlOld(AudioTrackInfo trackInfo, HttpInterface httpInterface) throws IOException {
-        final HttpGet httpGet = createGet("https://www.pornhub.com/view_video.php?viewkey=" + trackInfo.identifier);
-
-        try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
-            final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-            final Matcher matcher = MEDIA_STRING.matcher(html);
-
-            if (matcher.find()) {
-                final String js = matcher.group(matcher.groupCount());
-
-                return parseJsValueToUrl(html, js);
-            }
-
-            final Matcher videoMatcher = VIDEO_SHOW.matcher(html);
-
-            if (videoMatcher.find()) {
-                final String js = videoMatcher.group(videoMatcher.groupCount());
-
-                return extractVideoFromVideoShow(js, httpInterface);
-            }
-
-
-            throw new FriendlyException("Could not find media info", SUSPICIOUS, null);
         }
     }
 
@@ -193,7 +212,7 @@ public class PornHubAudioTrack extends MpegTrack {
 
         System.out.println("https://www.pornhub.com" + mediaUrl);
 
-        final HttpGet mediaGet = createGet("https://www.pornhub.com" + mediaUrl);
+        final HttpGet mediaGet = new HttpGet("https://www.pornhub.com" + mediaUrl);
 
         try (final CloseableHttpResponse response = httpInterface.execute(mediaGet)) {
             final String body = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
@@ -214,14 +233,6 @@ public class PornHubAudioTrack extends MpegTrack {
 
             return videoUrl;
         }
-    }
-
-    private HttpGet createGet(String url) {
-        final HttpGet httpGet = new HttpGet(url);
-
-        httpGet.setHeader("Cookie", "platform=pc;age_verified=1");
-
-        return httpGet;
     }
 
     @Override
