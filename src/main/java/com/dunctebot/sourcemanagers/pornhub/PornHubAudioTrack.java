@@ -29,14 +29,17 @@ import org.apache.http.client.methods.HttpGet;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.*;
 
 public class PornHubAudioTrack extends MpegTrack {
+    private static final String[] FORMAT_PREFIXES = {"media", "quality", "qualityItems"};
+    private static final String FORMAT_REGEX = String.format("(var\\s+(?:%s)_.+)", String.join("|", FORMAT_PREFIXES));
+    private static final Pattern FORMAT_PATTERN = Pattern.compile(FORMAT_REGEX);
     private static final Pattern MEDIA_STRING = Pattern.compile("(var\\s+?mediastring.+?)<\\/script>");
     private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9_]+ \\+ \\*\\/");
     private static final Pattern VIDEO_SHOW = Pattern.compile("var\\s+?VIDEO_SHOW\\s+?=\\s+?([^;]+);?<\\/script>");
@@ -54,8 +57,87 @@ public class PornHubAudioTrack extends MpegTrack {
         }
     }
 
+    private String parseJsValue(String input, Map<String, String> jsVars) {
+        String inp = input.replaceAll("/\\*(?:(?!\\*/).)*?\\*/", "");
+
+        if (input.contains("+")) {
+            return Arrays.stream(input.split("\\+"))
+                .map(s -> parseJsValue(s, jsVars))
+                .collect(Collectors.joining(" "));
+        }
+
+        inp = inp.trim();
+
+        if (jsVars.containsKey(inp)) {
+            return jsVars.get(inp);
+        }
+
+
+        // can't remove quotes if less than 2 chars
+        if (inp.length() < 2) {
+            return inp;
+        }
+
+        // remove quotes
+        if (
+            (inp.charAt(0) == '"' && inp.charAt(inp.length() - 1) == '"') ||
+                (inp.charAt(0) == '\'' && inp.charAt(inp.length() - 1) == '\'')
+        ) {
+            return inp.substring(1, inp.length() - 1);
+        }
+
+        return inp;
+    }
+
+    private Map<String, String> extractJsVars(String html, Pattern pattern) {
+        final Matcher matcher = pattern.matcher(html);
+
+        if (!matcher.find()) {
+            return null;
+        }
+
+        final String[] assignments = matcher.group(1).split(";");
+        final Map<String, String> jsVars = new HashMap<>();
+
+        for (String assn : assignments) {
+            assn = assn.trim();
+
+            if (assn.isBlank()) {
+                continue;
+            }
+
+            assn = assn.replaceFirst("var\\s+", "");
+            final String[] parts = assn.split("=", 2);
+
+            jsVars.put(parts[0], parts[1]);
+        }
+
+        return jsVars;
+    }
+
     private String loadTrackUrl(AudioTrackInfo trackInfo, HttpInterface httpInterface) throws IOException {
-        final HttpGet httpGet = createGet(trackInfo.identifier);
+        final HttpGet httpGet = createGet("https://www.pornhub.com/view_video.php?viewkey=" + trackInfo.identifier);
+
+        try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
+            final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+            final Map<String, String> jsVars = extractJsVars(html, FORMAT_PATTERN);
+
+            if (jsVars == null) {
+                throw new FriendlyException("Could not load media info", SUSPICIOUS, null);
+            }
+
+            for (final Map.Entry<String, String> entry : jsVars.entrySet()) {
+                if (entry.getKey().startsWith("qualityItems")) {
+                    //
+                }
+            }
+
+            return "";
+        }
+    }
+
+    private String loadTrackUrlOld(AudioTrackInfo trackInfo, HttpInterface httpInterface) throws IOException {
+        final HttpGet httpGet = createGet("https://www.pornhub.com/view_video.php?viewkey=" + trackInfo.identifier);
 
         try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
@@ -137,7 +219,7 @@ public class PornHubAudioTrack extends MpegTrack {
     private HttpGet createGet(String url) {
         final HttpGet httpGet = new HttpGet(url);
 
-        httpGet.setHeader("Cookie", "platform=tv");
+        httpGet.setHeader("Cookie", "platform=pc;age_verified=1");
 
         return httpGet;
     }

@@ -45,10 +45,6 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final Pattern VIDEO_INFO_REGEX = Pattern.compile("var flashvars_\\d+ = (\\{.+})");
     private static final Pattern MODEL_INFO_REGEX = Pattern.compile("var MODEL_PROFILE = (\\{.+})");
 
-    public PornHubAudioSourceManager() {
-        super(false);
-    }
-
     @Override
     public String getSourceName() {
         return "pornhub";
@@ -104,7 +100,7 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
         final String author = modelInfo.get("username").safeText();
         final int duration = Integer.parseInt(videoInfo.get("video_duration").safeText()) * 1000; // PornHub returns seconds
         final Matcher matcher = VIDEO_REGEX.matcher(reference.identifier);
-        final String identifier = matcher.matches() ? "https://www.pornhub.com/view_video.php?viewkey=" + matcher.group(matcher.groupCount()) : reference.identifier;
+        final String identifier = matcher.matches() ? matcher.group(matcher.groupCount()) : null;
         final String uri = reference.identifier;
         final String imageUrl = videoInfo.get("image_url").safeText();
 
@@ -167,7 +163,7 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
     private String loadHtml(String url) throws IOException {
         final HttpGet httpGet = new HttpGet(url);
 
-        httpGet.setHeader("Cookie", "platform=pc");
+        httpGet.setHeader("Cookie", "platform=pc;age_verified=1");
 
         try (final CloseableHttpResponse response = getHttpInterface().execute(httpGet)) {
             final int statusCode = response.getStatusLine().getStatusCode();
