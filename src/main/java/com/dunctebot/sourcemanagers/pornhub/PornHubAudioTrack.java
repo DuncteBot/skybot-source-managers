@@ -109,10 +109,15 @@ public class PornHubAudioTrack extends MpegTrack {
         final JsonBrowser browser = JsonBrowser.parse(obj);
         final String mediaUrl = browser.get("mediaUrl").safeText();
 
+        System.out.println("https://www.pornhub.com" + mediaUrl);
+
         final HttpGet mediaGet = createGet("https://www.pornhub.com" + mediaUrl);
 
         try (final CloseableHttpResponse response = httpInterface.execute(mediaGet)) {
             final String body = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+
+            System.out.println("body " + body);
+
             final JsonBrowser json = JsonBrowser.parse(body);
 
             if (!"OK".equals(json.get("status").safeText())) {
