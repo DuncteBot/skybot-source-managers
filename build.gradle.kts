@@ -31,7 +31,7 @@ val archivesBaseName = "sourcemanagers"
 repositories {
     mavenCentral()
     jcenter()
-    maven("https://dl.bintray.com/sedmelluq/com.sedmelluq")
+    maven("https://m2.dv8tion.net/releases")
 
     maven {
         url = uri("https://jitpack.io")
