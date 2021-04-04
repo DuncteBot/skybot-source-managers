@@ -103,6 +103,7 @@ public class PornHubAudioTrack extends MpegTrack {
                 System.out.println(Arrays.toString(response.getHeaders("Set-Cookie")));
                 final String cookies = Arrays.stream(response.getHeaders("Set-Cookie"))
                     .map(NameValuePair::getValue)
+                    .map((s) -> s.split(";", 2)[0])
                     .collect(Collectors.joining("; "));
                 final String js = videoMatcher.group(videoMatcher.groupCount());
 
