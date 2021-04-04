@@ -33,9 +33,9 @@ public class DuncteBotSources {
         final YoutubeAudioSourceManager youtubeSource = playerManager.source(YoutubeAudioSourceManager.class);
         youtubeSource.setPlaylistPageCount(playlistPageCount);
         youtubeSource.getMainHttpConfiguration()
-            .setHttpContextFilter(
+            /*.setHttpContextFilter(
                 YoutubeContextFilterOverride.getOrCreate(updateYoutubeData, youtubeSource.getHttpInterface())
-            );
+            )*/;
 
         playerManager.registerSourceManager(new GetyarnAudioSourceManager());
         playerManager.registerSourceManager(new ClypitAudioSourceManager());

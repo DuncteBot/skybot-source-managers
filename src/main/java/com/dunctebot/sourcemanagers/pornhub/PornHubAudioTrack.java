@@ -57,7 +57,7 @@ public class PornHubAudioTrack extends MpegTrack {
         final CookieStore cookieStore = new BasicCookieStore();
 
         cookieStore.addCookie(new BasicClientCookie("platform", "tv"));
-        cookieStore.addCookie(new BasicClientCookie("age_verified", "1"));
+//        cookieStore.addCookie(new BasicClientCookie("age_verified", "1"));
 
         final HttpInterfaceManager manager = HttpClientTools.createDefaultThreadLocalManager();
         manager.configureBuilder(
@@ -97,6 +97,7 @@ public class PornHubAudioTrack extends MpegTrack {
                 return extractVideoFromVideoShow(js, httpInterface);
             }
 
+            System.out.println(html);
 
             throw new FriendlyException("Could not find media info", SUSPICIOUS, null);
         }
@@ -233,6 +234,14 @@ public class PornHubAudioTrack extends MpegTrack {
 
             return videoUrl;
         }
+    }
+
+    private HttpGet makeGet(String url) {
+        final HttpGet httpGet = new HttpGet(url);
+
+        httpGet.setHeader("Cookie", "");
+
+        return httpGet;
     }
 
     @Override
