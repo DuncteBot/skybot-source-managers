@@ -49,7 +49,7 @@ public class PornHubAudioTrack extends MpegTrack {
     private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9_]+ \\+ \\*\\/");
     private static final Pattern VIDEO_SHOW = Pattern.compile("var\\s+?VIDEO_SHOW\\s+?=\\s+?([^;]+);?<\\/script>");
 
-    private final HttpInterface httpInterface;
+    private final HttpInterfaceManager httpManager;
 
     public PornHubAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource sourceManager) {
         super(trackInfo, sourceManager);
@@ -64,7 +64,11 @@ public class PornHubAudioTrack extends MpegTrack {
             (config) -> config.setDefaultCookieStore(cookieStore)
         );
 
-        this.httpInterface = manager.getInterface();
+        this.httpManager = manager;
+    }
+
+    private HttpInterface getInterface() {
+        return this.httpManager.getInterface();
     }
 
     @Override
@@ -79,7 +83,9 @@ public class PornHubAudioTrack extends MpegTrack {
     private String loadTrackUrl(AudioTrackInfo trackInfo) throws IOException {
         final HttpGet httpGet = new HttpGet("https://www.pornhub.com/view_video.php?viewkey=" + trackInfo.identifier);
 
-        try (final CloseableHttpResponse response = this.httpInterface.execute(httpGet)) {
+        httpGet.setHeader("Cookie", "platform=tv");
+
+        try (final CloseableHttpResponse response = this.getInterface().execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
             final Matcher matcher = MEDIA_STRING.matcher(html);
 
@@ -94,7 +100,7 @@ public class PornHubAudioTrack extends MpegTrack {
             if (videoMatcher.find()) {
                 final String js = videoMatcher.group(videoMatcher.groupCount());
 
-                return extractVideoFromVideoShow(js, httpInterface);
+                return extractVideoFromVideoShow(js, getInterface());
             }
 
             System.out.println(html);
@@ -164,7 +170,7 @@ public class PornHubAudioTrack extends MpegTrack {
     private String loadTrackUrl_new(AudioTrackInfo trackInfo) throws IOException {
         final HttpGet httpGet = new HttpGet("https://www.pornhub.com/view_video.php?viewkey=" + trackInfo.identifier);
 
-        try (final CloseableHttpResponse response = this.httpInterface.execute(httpGet)) {
+        try (final CloseableHttpResponse response = this.getInterface().execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
             final Map<String, String> jsVars = extractJsVars(html, FORMAT_PATTERN);
 
@@ -239,7 +245,7 @@ public class PornHubAudioTrack extends MpegTrack {
     private HttpGet makeGet(String url) {
         final HttpGet httpGet = new HttpGet(url);
 
-        httpGet.setHeader("Cookie", "");
+        httpGet.setHeader("Cookie", "platform=tv");
 
         return httpGet;
     }
