@@ -26,6 +26,7 @@ import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -85,7 +86,7 @@ public class PornHubAudioTrack extends MpegTrack {
 
         httpGet.setHeader("Cookie", "platform=tv");
 
-        try (final CloseableHttpResponse response = this.getInterface().execute(httpGet)) {
+        try (final CloseableHttpResponse response = this.getSourceManager().getHttpInterface().execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
             final Matcher matcher = MEDIA_STRING.matcher(html);
 
@@ -98,9 +99,13 @@ public class PornHubAudioTrack extends MpegTrack {
             final Matcher videoMatcher = VIDEO_SHOW.matcher(html);
 
             if (videoMatcher.find()) {
+                System.out.println(Arrays.toString(response.getHeaders("Cookie")));
+                final String cookies = Arrays.stream(response.getHeaders("Cookie"))
+                    .map(NameValuePair::getValue)
+                    .collect(Collectors.joining(";"));
                 final String js = videoMatcher.group(videoMatcher.groupCount());
 
-                return extractVideoFromVideoShow(js, getInterface());
+                return extractVideoFromVideoShow(js, this.getSourceManager().getHttpInterface(), cookies);
             }
 
             System.out.println(html);
@@ -213,13 +218,15 @@ public class PornHubAudioTrack extends MpegTrack {
         return String.join("", videoParts);
     }
 
-    private String extractVideoFromVideoShow(String obj, HttpInterface httpInterface) throws IOException {
+    private String extractVideoFromVideoShow(String obj, HttpInterface httpInterface, String cookie) throws IOException {
         final JsonBrowser browser = JsonBrowser.parse(obj);
         final String mediaUrl = browser.get("mediaUrl").safeText();
 
         System.out.println("https://www.pornhub.com" + mediaUrl);
 
         final HttpGet mediaGet = new HttpGet("https://www.pornhub.com" + mediaUrl);
+
+        mediaGet.setHeader("Cookie", cookie);
 
         try (final CloseableHttpResponse response = httpInterface.execute(mediaGet)) {
             final String body = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
