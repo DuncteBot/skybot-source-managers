@@ -224,10 +224,11 @@ public class PornHubAudioTrack extends MpegTrack {
         final String mediaUrl = browser.get("mediaUrl").safeText();
 
         System.out.println("https://www.pornhub.com" + mediaUrl);
+        System.out.println("Cookie " + cookie + "; quality=720; platform=tv");
 
         final HttpGet mediaGet = new HttpGet("https://www.pornhub.com" + mediaUrl);
 
-        mediaGet.setHeader("Cookie", cookie + "; quality=720");
+        mediaGet.setHeader("Cookie", cookie + "; quality=720; platform=tv");
         mediaGet.setHeader("Referer", getPlayerPage(this.trackInfo.identifier));
 
         try (final CloseableHttpResponse response = httpInterface.execute(mediaGet)) {
