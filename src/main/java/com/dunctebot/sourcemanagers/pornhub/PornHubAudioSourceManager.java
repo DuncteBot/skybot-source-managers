@@ -183,4 +183,8 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
     private void notAvailable() {
         throw new FriendlyException("This video is not available", Severity.COMMON, null);
     }
+
+    public static String getPlayerPage(String id) {
+        return "https://www.pornhub.com/view_video.php?viewkey=" + id;
+    }
 }
