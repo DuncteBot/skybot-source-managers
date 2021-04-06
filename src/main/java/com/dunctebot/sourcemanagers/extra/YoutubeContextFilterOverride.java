@@ -17,7 +17,6 @@
 package com.dunctebot.sourcemanagers.extra;
 
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeHttpContextFilter;
-import com.sedmelluq.discord.lavaplayer.tools.DataFormatTools;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import io.sentry.Sentry;

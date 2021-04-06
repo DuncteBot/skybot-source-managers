@@ -25,7 +25,7 @@ plugins {
 }
 
 project.group = "com.dunctebot"
-project.version = "1.5.4"
+project.version = "1.5.5"
 val archivesBaseName = "sourcemanagers"
 
 repositories {
@@ -41,7 +41,7 @@ repositories {
 dependencies {
     // build override for age-restricted videos
 //    implementation(group = "com.github.duncte123", name = "lavaplayer", version = "be6e364")
-    implementation(group = "com.sedmelluq", name = "lavaplayer", version = "1.3.75")
+    implementation(group = "com.sedmelluq", name = "lavaplayer", version = "1.3.76")
     implementation(group = "io.sentry", name = "sentry-logback", version = "1.7.17")
 
     implementation(group = "com.google.code.findbugs", name = "jsr305", version = "3.0.2")
