@@ -20,18 +20,12 @@ import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.MpegTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
-import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.cookie.BasicClientCookie;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -51,26 +45,8 @@ public class PornHubAudioTrack extends MpegTrack {
     private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9_]+ \\+ \\*\\/");
     private static final Pattern VIDEO_SHOW = Pattern.compile("var\\s+?VIDEO_SHOW\\s+?=\\s+?([^;]+);?<\\/script>");
 
-    private final HttpInterfaceManager httpManager;
-
     public PornHubAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource sourceManager) {
         super(trackInfo, sourceManager);
-
-        final CookieStore cookieStore = new BasicCookieStore();
-
-        cookieStore.addCookie(new BasicClientCookie("platform", "tv"));
-//        cookieStore.addCookie(new BasicClientCookie("age_verified", "1"));
-
-        final HttpInterfaceManager manager = HttpClientTools.createDefaultThreadLocalManager();
-        manager.configureBuilder(
-            (config) -> config.setDefaultCookieStore(cookieStore)
-        );
-
-        this.httpManager = manager;
-    }
-
-    private HttpInterface getInterface() {
-        return this.httpManager.getInterface();
     }
 
     @Override
@@ -87,7 +63,7 @@ public class PornHubAudioTrack extends MpegTrack {
 
         httpGet.setHeader("Cookie", "platform=tv");
 
-        try (final CloseableHttpResponse response = this.getInterface().execute(httpGet)) {
+        try (final CloseableHttpResponse response = this.getSourceManager().getHttpInterface().execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
             final Matcher matcher = MEDIA_STRING.matcher(html);
 
@@ -106,7 +82,7 @@ public class PornHubAudioTrack extends MpegTrack {
                     .collect(Collectors.joining("; "));
                 final String js = videoMatcher.group(videoMatcher.groupCount());
 
-                return extractVideoFromVideoShow(js, getInterface(), cookies);
+                return extractVideoFromVideoShow(js, cookies);
             }
 
             throw new FriendlyException("Could not find media info", SUSPICIOUS, null);
@@ -136,6 +112,11 @@ public class PornHubAudioTrack extends MpegTrack {
 
         try (final CloseableHttpResponse response = this.getSourceManager().getHttpInterface().execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+
+            if (Pattern.compile("<[^>]+\\bid=[\"']lockedPlayer").matcher(html).find()) {
+                throw new FriendlyException("Video " + this.trackInfo.identifier + " is locked.", COMMON, null);
+            }
+
             final Map<String, String> jsVars = extractJsVars(html, FORMAT_PATTERN);
 
             if (jsVars == null) {
@@ -149,7 +130,9 @@ public class PornHubAudioTrack extends MpegTrack {
                     if (playbackUrl != null) {
                         return playbackUrl;
                     }
-                }
+                }/* else if (entry.getKey().startsWith("media") || entry.getKey().startsWith("quality")) {
+                    // TODO: these are probably broken anyway
+                }*/
             }
 
             throw new FriendlyException("Could not extract video url", COMMON, null);
@@ -239,7 +222,7 @@ public class PornHubAudioTrack extends MpegTrack {
         return String.join("", videoParts);
     }
 
-    private String extractVideoFromVideoShow(String obj, HttpInterface httpInterface, String cookie) throws IOException {
+    private String extractVideoFromVideoShow(String obj, String cookie) throws IOException {
         final JsonBrowser browser = JsonBrowser.parse(obj);
         final String mediaUrl = browser.get("mediaUrl").safeText();
 
@@ -250,7 +233,7 @@ public class PornHubAudioTrack extends MpegTrack {
         mediaGet.setHeader("Cookie", cookie + "; quality=720; platform=tv");
         mediaGet.setHeader("Referer", getPlayerPage(this.trackInfo.identifier));
 
-        try (final CloseableHttpResponse response = httpInterface.execute(mediaGet)) {
+        try (final CloseableHttpResponse response = this.getSourceManager().getHttpInterface().execute(mediaGet)) {
             final String body = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
 
             System.out.println("body " + body);
