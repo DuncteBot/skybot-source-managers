@@ -25,15 +25,9 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 
 public class DuncteBotSources {
-    public static void registerCustom(AudioPlayerManager playerManager, String speechLanguage,
-                                      int playlistPageCount, boolean updateYoutubeData) {
-
+    public static void registerCustom(AudioPlayerManager playerManager, String speechLanguage, int playlistPageCount) {
         final YoutubeAudioSourceManager youtubeSource = playerManager.source(YoutubeAudioSourceManager.class);
         youtubeSource.setPlaylistPageCount(playlistPageCount);
-        youtubeSource.getMainHttpConfiguration()
-            /*.setHttpContextFilter(
-                YoutubeContextFilterOverride.getOrCreate(updateYoutubeData, youtubeSource.getHttpInterface())
-            )*/;
 
         playerManager.registerSourceManager(new GetyarnAudioSourceManager());
         playerManager.registerSourceManager(new ClypitAudioSourceManager());
