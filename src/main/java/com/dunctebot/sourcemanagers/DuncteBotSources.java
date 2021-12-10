@@ -18,6 +18,7 @@ package com.dunctebot.sourcemanagers;
 
 import com.dunctebot.sourcemanagers.clypit.ClypitAudioSourceManager;
 import com.dunctebot.sourcemanagers.getyarn.GetyarnAudioSourceManager;
+import com.dunctebot.sourcemanagers.ocremix.OCRemixAudioSourceManager;
 import com.dunctebot.sourcemanagers.pornhub.PornHubAudioSourceManager;
 import com.dunctebot.sourcemanagers.reddit.RedditAudioSourceManager;
 import com.dunctebot.sourcemanagers.speech.SpeechAudioSourceManager;
@@ -34,6 +35,7 @@ public class DuncteBotSources {
         playerManager.registerSourceManager(new SpeechAudioSourceManager(speechLanguage));
         playerManager.registerSourceManager(new PornHubAudioSourceManager());
         playerManager.registerSourceManager(new RedditAudioSourceManager());
+        playerManager.registerSourceManager(new OCRemixAudioSourceManager());
         //playerManager.registerSourceManager(new TikTokAudioSourceManager());
 
     }

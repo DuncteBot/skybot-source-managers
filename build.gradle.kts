@@ -25,7 +25,7 @@ plugins {
 }
 
 project.group = "com.dunctebot"
-project.version = "1.5.7"
+project.version = "1.5.8"
 val archivesBaseName = "sourcemanagers"
 
 repositories {
@@ -44,6 +44,7 @@ dependencies {
     compileOnly(group = "com.sedmelluq", name = "lavaplayer", version = "1.3.76")
     compileOnly(group = "io.sentry", name = "sentry-logback", version = "1.7.17")
 
+    implementation(group = "org.jsoup", name = "jsoup", version = "1.13.1")
     implementation(group = "com.google.code.findbugs", name = "jsr305", version = "3.0.2")
 }
 
