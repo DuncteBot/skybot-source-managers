@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class OCRemixAudioSourceManager extends AbstractDuncteBotHttpSource {
-    private static final Pattern REMIX_PATTERN = Pattern.compile("https?://(?:www\\.)?ocremix\\.org/remix/(?<id>OCR[\\d]+)(?:.*)?");
+    private static final Pattern REMIX_PATTERN = Pattern.compile("(?:https?://(?:www\\.)?ocremix\\.org/remix/)?(?<id>OCR[\\d]+)(?:.*)?");
 
     @Override
     public String getSourceName() {
@@ -82,7 +82,7 @@ public class OCRemixAudioSourceManager extends AbstractDuncteBotHttpSource {
                 meta.name,
                 meta.remixers,
                 meta.trackLength,
-                meta.id,
+                "https://ocremix.org/remix/" + meta.id,
                 false,
                 meta.fileName
             );

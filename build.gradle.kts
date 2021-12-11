@@ -25,7 +25,7 @@ plugins {
 }
 
 project.group = "com.dunctebot"
-project.version = "1.5.8"
+project.version = "1.5.9"
 val archivesBaseName = "sourcemanagers"
 
 repositories {
@@ -46,6 +46,8 @@ dependencies {
 
     implementation(group = "org.jsoup", name = "jsoup", version = "1.13.1")
     implementation(group = "com.google.code.findbugs", name = "jsr305", version = "3.0.2")
+
+    testImplementation(group = "com.sedmelluq", name = "lavaplayer", version = "1.3.76")
 }
 
 configure<JavaPluginConvention> {
