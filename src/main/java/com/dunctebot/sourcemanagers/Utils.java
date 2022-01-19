@@ -19,6 +19,7 @@ package com.dunctebot.sourcemanagers;
 import org.apache.http.HttpRequest;
 
 public class Utils {
+    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36";
 
     public static boolean isURL(String url) {
         return url.matches("^https?:\\/\\/[-a-zA-Z0-9+&@#\\/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#\\/%=~_|]");
@@ -35,7 +36,7 @@ public class Utils {
         request.setHeader("sec-fetch-dest", "video");
         request.setHeader("sec-fetch-mode", "no-cors");
         request.setHeader("sec-fetch-site", "cross-site");
-        request.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
+        request.setHeader("User-Agent", USER_AGENT);
     }
 
 }

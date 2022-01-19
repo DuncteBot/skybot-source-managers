@@ -18,6 +18,7 @@ package com.dunctebot.sourcemanagers.reddit;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.MpegTrack;
+import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
@@ -32,7 +33,13 @@ public class RedditAudioTrack extends MpegTrack {
     }
 
     static String getPlaybackUrl(String id) {
-        return "https://v.redd.it/" + id + "/audio?source=fallback";
+        return "https://v.redd.it/" + id + "/DASH_audio.mp4?source=fallback";
+    }
+
+    @Override
+    protected long getTrackDuration() {
+        // return unknown so we get a more accurate representation of the length
+        return Units.CONTENT_LENGTH_UNKNOWN;
     }
 
     @Override

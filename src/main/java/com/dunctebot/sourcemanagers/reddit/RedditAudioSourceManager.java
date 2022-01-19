@@ -39,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.dunctebot.sourcemanagers.Utils.USER_AGENT;
 import static com.dunctebot.sourcemanagers.Utils.isURL;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.COMMON;
 import static com.sedmelluq.discord.lavaplayer.tools.JsonBrowser.NULL_BROWSER;
@@ -50,7 +51,7 @@ public class RedditAudioSourceManager extends AbstractDuncteBotHttpSource {
 
     public RedditAudioSourceManager() {
         this.configureBuilder(
-            (builder) -> builder.setUserAgent("Mozilla/5.0 (compatible; https://github.com/DuncteBot/skybot-source-managers)")
+            (builder) -> builder.setUserAgent(USER_AGENT)
         );
     }
 
@@ -159,10 +160,10 @@ public class RedditAudioSourceManager extends AbstractDuncteBotHttpSource {
         }
     }
 
-    private RedditAudioTrack buildTrack(@Nullable JsonBrowser data, String pageURl) {
+    private AudioItem buildTrack(@Nullable JsonBrowser data, String pageURl) {
         // If we don't have any data we can return null
         if (data == null) {
-            return null;
+            return AudioReference.NO_TRACK;
         }
 
         final String postHint = data.get("post_hint").safeText();
@@ -177,11 +178,15 @@ public class RedditAudioSourceManager extends AbstractDuncteBotHttpSource {
         final JsonBrowser media = data.get("media").get("reddit_video");
         final String url = data.get("url").safeText();
 
+        if (media.get("is_gif").asBoolean(false)) {
+            throw new FriendlyException("Cannot play gifs", COMMON, null);
+        }
+
         final Matcher videoLink = VIDEO_LINK_REGEX.matcher(url);
 
         // This should never happen unless my regex is wrong
         if (!videoLink.matches()) {
-            return null;
+            return AudioReference.NO_TRACK;
         }
 
         final String videoId = videoLink.group(videoLink.groupCount());
@@ -202,7 +207,7 @@ public class RedditAudioSourceManager extends AbstractDuncteBotHttpSource {
             new AudioTrackInfoWithImage(
                 data.get("title").safeText(),
                 "u/" + data.get("author").safeText(),
-                Long.parseLong(media.get("duration").safeText()) * 1000,
+                media.get("duration").asLong(1) * 1000,
                 videoId,
                 false,
                 pageURl,
