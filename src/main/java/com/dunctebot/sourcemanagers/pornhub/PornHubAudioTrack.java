@@ -34,16 +34,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.dunctebot.sourcemanagers.pornhub.PornHubAudioSourceManager.VIDEO_INFO_REGEX;
 import static com.dunctebot.sourcemanagers.pornhub.PornHubAudioSourceManager.getPlayerPage;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.*;
 
 public class PornHubAudioTrack extends MpegTrack {
-    private static final String[] FORMAT_PREFIXES = {"media", "quality", "qualityItems"};
-    private static final String FORMAT_REGEX = String.format("(var\\s+(?:%s)_.+)", String.join("|", FORMAT_PREFIXES));
-    private static final Pattern FORMAT_PATTERN = Pattern.compile(FORMAT_REGEX);
-    private static final Pattern MEDIA_STRING = Pattern.compile("(var\\s+?mediastring.+?)<\\/script>");
     private static final Pattern MEDIA_STRING_FILTER = Pattern.compile("\\/\\* \\+ [a-zA-Z0-9_]+ \\+ \\*\\/");
-    private static final Pattern VIDEO_SHOW = Pattern.compile("var\\s+?VIDEO_SHOW\\s+?=\\s+?([^;]+);?<\\/script>");
 
     public PornHubAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource sourceManager) {
         super(trackInfo, sourceManager);
@@ -52,149 +48,73 @@ public class PornHubAudioTrack extends MpegTrack {
     @Override
     protected String getPlaybackUrl() {
         try {
-            return loadTrackUrl();
+            return loadFromMediaInfo();
         } catch (IOException e) {
             throw new FriendlyException("Could not load PornHub video", SUSPICIOUS, e);
         }
     }
 
-    private String loadTrackUrl_old() throws IOException {
+    private String loadFromMediaInfo() throws IOException {
         final HttpGet httpGet = new HttpGet(getPlayerPage(this.trackInfo.identifier));
 
-        httpGet.setHeader("Cookie", "platform=tv");
+        httpGet.setHeader("Cookie", "platform=pc; age_verified=1");
 
         try (final CloseableHttpResponse response = this.getSourceManager().getHttpInterface().execute(httpGet)) {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-            final Matcher matcher = MEDIA_STRING.matcher(html);
+            final Matcher matcher = VIDEO_INFO_REGEX.matcher(html);
 
             if (matcher.find()) {
                 final String js = matcher.group(matcher.groupCount());
+                final JsonBrowser videoInfo = JsonBrowser.parse(js);
 
-                return parseJsValueToUrl(html, js);
-            }
+                if (videoInfo.get("video_unavailable_country").asBoolean(false)) {
+                    throw new FriendlyException("Video is not available in your country", COMMON, null);
+                }
 
-            final Matcher videoMatcher = VIDEO_SHOW.matcher(html);
+                final JsonBrowser defs = videoInfo.get("mediaDefinitions");
 
-            if (videoMatcher.find()) {
-                final String cookies = Arrays.stream(response.getHeaders("Set-Cookie"))
-                    .map(NameValuePair::getValue)
-                    .map((s) -> s.split(";", 2)[0])
-                    .collect(Collectors.joining("; "));
-                final String js = videoMatcher.group(videoMatcher.groupCount());
+                if (defs.isNull()) {
+                    throw new FriendlyException("Media info not present", COMMON, null);
+                }
 
-                return extractVideoFromVideoShow(js, cookies);
-            }
+                int i = 0;
+                while (!defs.index(i).isNull()) {
+                    // we found the default quality
+                    if ("mp4".equalsIgnoreCase(defs.index(i).get("format").safeText())) {
+                        final String cookies = Arrays.stream(response.getHeaders("Set-Cookie"))
+                            .map(NameValuePair::getValue)
+                            .map((s) -> s.split(";", 2)[0])
+                            .collect(Collectors.joining("; "));
+                        final String getMedia = parseJsValueToUrl(
+                            html,
+                            scoupMediaVar(html, "media_" + i)
+                        );
 
-            throw new FriendlyException("Could not find media info", SUSPICIOUS, null);
-        }
-    }
-
-    private String parseQualityItems(String json) throws IOException {
-        final JsonBrowser parse = JsonBrowser.parse(json);
-
-        if (!parse.isList()) {
-            return null;
-        }
-
-        final JsonBrowser url = parse.values().stream()
-            .filter((it) -> !it.get("url").safeText().isEmpty())
-            .findFirst().orElse(null);
-
-        if (url == null) {
-            return null;
-        }
-
-        return url.get("url").text();
-    }
-
-    private String loadTrackUrl() throws IOException {
-        final HttpGet httpGet = new HttpGet("https://www.pornhub.com/view_video.php?viewkey=" + this.trackInfo.identifier);
-
-        try (final CloseableHttpResponse response = this.getSourceManager().getHttpInterface().execute(httpGet)) {
-            final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-
-            if (Pattern.compile("<[^>]+\\bid=[\"']lockedPlayer").matcher(html).find()) {
-                throw new FriendlyException("Video " + this.trackInfo.identifier + " is locked.", COMMON, null);
-            }
-
-            final Map<String, String> jsVars = extractJsVars(html, FORMAT_PATTERN);
-
-            if (jsVars == null) {
-                throw new FriendlyException("Could not load js vars", SUSPICIOUS, null);
-            }
-
-            for (final Map.Entry<String, String> entry : jsVars.entrySet()) {
-                if (entry.getKey().startsWith("qualityItems")) {
-                    final String playbackUrl = parseQualityItems(entry.getValue());
-
-                    if (playbackUrl != null) {
-                        return playbackUrl;
+                        return loadMp4Url(getMedia, cookies);
                     }
-                }/* else if (entry.getKey().startsWith("media") || entry.getKey().startsWith("quality")) {
-                    // TODO: these are probably broken anyway
-                }*/
+
+                    i++;
+                }
+
+                /*return parseJsValueToUrl(
+                    html,
+                    scoupMediaVar(html, "media_0") // fallback to first item (not mp4)
+                );*/
             }
 
-            throw new FriendlyException("Could not extract video url", COMMON, null);
+            throw new FriendlyException("Could not find media info", COMMON, null);
         }
     }
 
-    private String parseJsValue(String input, Map<String, String> jsVars) {
-        String inp = input.replaceAll("/\\*(?:(?!\\*/).)*?\\*/", "");
-
-        if (input.contains("+")) {
-            return Arrays.stream(input.split("\\+"))
-                .map(s -> parseJsValue(s, jsVars))
-                .collect(Collectors.joining(" "));
-        }
-
-        inp = inp.trim();
-
-        if (jsVars.containsKey(inp)) {
-            return jsVars.get(inp);
-        }
-
-
-        // can't remove quotes if less than 2 chars
-        if (inp.length() < 2) {
-            return inp;
-        }
-
-        // remove quotes
-        if (
-            (inp.charAt(0) == '"' && inp.charAt(inp.length() - 1) == '"') ||
-                (inp.charAt(0) == '\'' && inp.charAt(inp.length() - 1) == '\'')
-        ) {
-            return inp.substring(1, inp.length() - 1);
-        }
-
-        return inp;
-    }
-
-    private Map<String, String> extractJsVars(String html, Pattern pattern) {
+    private String scoupMediaVar(String html, String varName) {
+        final Pattern pattern = Pattern.compile("(var(?:\\s+)?" + varName + "(?:\\s+)?=(?:\\s+)?[^;]+;)");
         final Matcher matcher = pattern.matcher(html);
 
         if (!matcher.find()) {
-            return null;
+            throw new FriendlyException("Media var has changed, please contact developer", FAULT, null);
         }
 
-        final String[] assignments = matcher.group(1).split(";");
-        final Map<String, String> jsVars = new HashMap<>();
-
-        for (String assn : assignments) {
-            assn = assn.trim();
-
-            if (assn.isBlank()) {
-                continue;
-            }
-
-            assn = assn.replaceFirst("var\\s+", "");
-            final String[] parts = assn.split("=", 2);
-
-            jsVars.put(parts[0], this.parseJsValue(parts[1], jsVars));
-        }
-
-        return jsVars;
+        return matcher.group(matcher.groupCount());
     }
 
     private String parseJsValueToUrl(String htmlPage, String js) {
@@ -222,29 +142,29 @@ public class PornHubAudioTrack extends MpegTrack {
         return String.join("", videoParts);
     }
 
-    private String extractVideoFromVideoShow(String obj, String cookie) throws IOException {
-        final JsonBrowser browser = JsonBrowser.parse(obj);
-        final String mediaUrl = browser.get("mediaUrl").safeText();
+    private String loadMp4Url(String jsonPage, String cookie) throws IOException {
+        final HttpGet mediaGet = new HttpGet(jsonPage);
 
-        System.out.println("https://www.pornhub.com" + mediaUrl);
-
-        final HttpGet mediaGet = new HttpGet("https://www.pornhub.com" + mediaUrl);
-
-        mediaGet.setHeader("Cookie", cookie + "; quality=720; platform=tv");
+        mediaGet.setHeader("Cookie", cookie + "; platform=pc; age_verified=1");
         mediaGet.setHeader("Referer", getPlayerPage(this.trackInfo.identifier));
 
         try (final CloseableHttpResponse response = this.getSourceManager().getHttpInterface().execute(mediaGet)) {
             final String body = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-
-            System.out.println("body " + body);
-
             final JsonBrowser json = JsonBrowser.parse(body);
 
-            if (!"OK".equals(json.get("status").safeText())) {
-                throw new FriendlyException("Pornhub video returned non OK status for video info", COMMON, null);
+            for (JsonBrowser info : json.values()) {
+                if (info.get("defaultQuality").asBoolean(false)) {
+                    return info.get("videoUrl").text();
+                }
             }
 
-            final String videoUrl = json.get("videoUrl").text();
+            final JsonBrowser firstItem = json.index(0);
+
+            if (firstItem.isNull()) {
+                throw new FriendlyException("Video url missing on playback page", FAULT, null);
+            }
+
+            final String videoUrl = firstItem.get("videoUrl").text();
 
             if (videoUrl == null) {
                 throw new FriendlyException("Video url missing on playback page", FAULT, null);

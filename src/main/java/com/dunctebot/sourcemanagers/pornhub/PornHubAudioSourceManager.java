@@ -42,7 +42,7 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final String DOMAIN_PATTERN = "https?://([a-z]+\\.)?pornhub\\.(com|net)";
     public static final Pattern DOMAIN_REGEX = Pattern.compile(DOMAIN_PATTERN);
     private static final Pattern VIDEO_REGEX = Pattern.compile("^" + DOMAIN_PATTERN + "/view_video\\.php\\?viewkey=([a-zA-Z0-9]+)(?:.*)$");
-    private static final Pattern VIDEO_INFO_REGEX = Pattern.compile("var flashvars_\\d+ = (\\{.+})");
+    public static final Pattern VIDEO_INFO_REGEX = Pattern.compile("var flashvars_\\d+ = (\\{.+})");
     private static final Pattern MODEL_INFO_REGEX = Pattern.compile("var MODEL_PROFILE = (\\{.+})");
 
     @Override
@@ -163,7 +163,7 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
     private String loadHtml(String url) throws IOException {
         final HttpGet httpGet = new HttpGet(url);
 
-        httpGet.setHeader("Cookie", "platform=pc;age_verified=1");
+        httpGet.setHeader("Cookie", "platform=pc; age_verified=1");
 
         try (final CloseableHttpResponse response = getHttpInterface().execute(httpGet)) {
             final int statusCode = response.getStatusLine().getStatusCode();
