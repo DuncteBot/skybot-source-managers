@@ -36,4 +36,4 @@ String ttsLange = "en-US"; // The language for the speak/tts item
 DuncteBotSources.registerCustom(playerManager, ttsLange, 6);
 ```
 
-[VERSION]: https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fduncte123.jfrog.io%2Fartifactory%2Fmaven%2Fcom%2Fdunctebot%2Fsourcemanagers%2Fmaven-metadata.xml
+[VERSION]: https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fm2.duncte123.dev%2Freleases%2Fcom%2Fdunctebot%2Fsourcemanagers%2Fmaven-metadata.xml
