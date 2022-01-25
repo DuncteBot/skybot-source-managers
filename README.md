@@ -18,7 +18,7 @@ Installing this plugin can be done via gradle
 
 ```gradle
 repositories {
-    maven("https://duncte123.jfrog.io/artifactory/maven")
+    maven("https://m2.duncte123.dev/releases")
 }
 
 dependencies {

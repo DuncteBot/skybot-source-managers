@@ -81,16 +81,19 @@ build.apply {
 publishing {
     repositories {
         maven {
-            name = "jfrog"
-            url = uri("https://duncte123.jfrog.io/artifactory/maven/")
+            name = "duncte123-m2"
+            url = uri("https://m2.duncte123.dev/releases")
             credentials {
                 username = System.getenv("USERNAME")
                 password = System.getenv("PASSWORD")
             }
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
         }
     }
     publications {
-        register<MavenPublication>("jfrog") {
+        register<MavenPublication>("duncte123-m2") {
             pom {
                 name.set(archivesBaseName)
                 description.set("Source managers for skybot")

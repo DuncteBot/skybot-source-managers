@@ -26,8 +26,8 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew --no-daemon publish -x test
         env:
-            USERNAME: ${{ secrets.JFROG_USER }}
-            PASSWORD: ${{ secrets.JFROG_PASS }}
+            USERNAME: ${{ secrets.M2_USER }}
+            PASSWORD: ${{ secrets.M2_PASS }}
 #      - name: Upload to github
 #        env:
 #            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
