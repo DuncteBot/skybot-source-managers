@@ -47,6 +47,8 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     protected static final Pattern VIDEO_REGEX = Pattern.compile("^" + BASE + "\\/" + USER + "\\/video\\/" + VIDEO + "(?:.*)$");
     private static final Pattern JS_REGEX = Pattern.compile(
         "<script id=\"__NEXT_DATA__\" type=\"application/json\" crossorigin=\"anonymous\">(.*)<\\/script>");
+    private static final Pattern SIGI_REGEX = Pattern.compile(
+        "<script id=\"sigi-persisted-data\">(?:\n)?window\\[(?:'SIGI_STATE'|\"SIGI_STATE\")\\](?:\\s+)?=(?:\\s+)?(.*);(?:\\s+)?(?:.*)?<\\/script>");
 
     public TikTokAudioSourceManager() {
         super(false);
@@ -92,18 +94,11 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
         return new TikTokAudioTrack(trackInfo, this);
     }
 
-    private MetaData extractData(String userId, String videoId) throws IOException {
+    private MetaData extractData(String userId, String videoId) throws Exception {
         return extractData("https://www.tiktok.com/@" + userId + "/video/" + videoId);
     }
 
-    protected MetaData extractData(String url) throws IOException {
-        final JsonBrowser json = extractDataRaw(url);
-        final JsonBrowser base = json.get("props").get("pageProps").get("itemInfo").get("itemStruct");
-
-        return getMetaData(url, base);
-    }
-
-    protected JsonBrowser extractDataRaw(String url) throws IOException {
+    protected MetaData extractData(String url) throws Exception {
         final HttpGet httpGet = new HttpGet(url);
 
         fakeChrome(httpGet);
@@ -122,19 +117,31 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
             final String html = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
             final Matcher matcher = JS_REGEX.matcher(html);
 
-            if (!matcher.find()) {
-                // TODO: temp
-                System.out.println(html);
-                throw new FriendlyException("Failed to find data for tiktok video", Severity.SUSPICIOUS, null);
+            if (matcher.find()) {
+                final JsonBrowser json = JsonBrowser.parse(matcher.group(1).trim());
+                final JsonBrowser base = json.get("props").get("pageProps").get("itemInfo").get("itemStruct");
+
+                return getMetaData(url, base);
             }
 
-            return JsonBrowser.parse(matcher.group(1).trim());
+            final Matcher sigiMatcher = SIGI_REGEX.matcher(html);
+
+            if (sigiMatcher.find()) {
+                final JsonBrowser json = JsonBrowser.parse(sigiMatcher.group(1).trim());
+                final String videoId = json.get("ItemList").get("video").get("keyword").text();
+                final JsonBrowser video = json.get("ItemModule").get(videoId);
+
+                return getMetaData(url, video);
+            }
+
+            // TODO: temp
+            System.out.println(html);
+            throw new FriendlyException("Failed to find data for tiktok video", Severity.SUSPICIOUS, null);
         }
     }
 
     protected static MetaData getMetaData(String url, JsonBrowser base) {
         final MetaData metaData = new MetaData();
-
         final JsonBrowser videoJson = base.get("video");
 
         metaData.pageUrl = url;
@@ -142,14 +149,12 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
         metaData.cover = videoJson.get("cover").safeText();
         metaData.title = base.get("desc").safeText();
 
-        metaData.uri = videoJson.get("playAddr").safeText();
+        metaData.uri = videoJson.get("downloadAddr").safeText();
         metaData.duration = Integer.parseInt(videoJson.get("duration").safeText());
 
         final JsonBrowser author = base.get("author");
 
         metaData.uniqueId = author.get("uniqueId").safeText();
-
-        System.out.println(metaData);
 
         return metaData;
     }

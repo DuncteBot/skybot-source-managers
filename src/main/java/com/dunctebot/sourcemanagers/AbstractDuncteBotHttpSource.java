@@ -42,10 +42,14 @@ public abstract class AbstractDuncteBotHttpSource implements AudioSourceManager,
     }
 
     public AbstractDuncteBotHttpSource(boolean withoutCookies) {
-        httpInterfaceManager = HttpClientTools.createDefaultThreadLocalManager();
+        this(HttpClientTools.createDefaultThreadLocalManager(), withoutCookies);
+    }
+
+    public AbstractDuncteBotHttpSource(HttpInterfaceManager httpInterfaceManager, boolean withoutCookies) {
+        this.httpInterfaceManager = httpInterfaceManager;
 
         if (withoutCookies) {
-            httpInterfaceManager.setHttpContextFilter(new FuckCookies());
+            this.httpInterfaceManager.setHttpContextFilter(new FuckCookies());
         }
     }
 

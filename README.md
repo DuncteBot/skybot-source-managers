@@ -6,7 +6,7 @@ A bunch of extra source managers for LavaPlayer:
 - Reddit
 - getyarn.io
 - Text To Speech (if prefixed with `speak:`)
-- TikTok (not functional yet)
+- TikTok (in beta, works on _most_ videos)
 - PornHub
 
 ## Lavalink users

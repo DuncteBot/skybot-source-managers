@@ -18,12 +18,15 @@ package com.dunctebot.sourcemanagers.tiktok;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
 import com.dunctebot.sourcemanagers.MpegTrack;
-import com.dunctebot.sourcemanagers.tiktok.TikTokAudioSourceManager.MetaData;
+import com.dunctebot.sourcemanagers.Pair;
+import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
+import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -31,15 +34,14 @@ import org.apache.http.client.methods.HttpGet;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
 
 import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
-import static com.dunctebot.sourcemanagers.tiktok.TikTokAudioSourceManager.VIDEO_REGEX;
-import static com.dunctebot.sourcemanagers.tiktok.TikTokAudioSourceManager.getMetaData;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.SUSPICIOUS;
 
 public class TikTokAudioTrack extends MpegTrack {
     private final TikTokAudioTrackHttpManager httpManager = new TikTokAudioTrackHttpManager();
+    private Pair<String, String> urlCache = null;
+    private boolean failedOnce = false;
 
     public TikTokAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource manager) {
         super(trackInfo, manager);
@@ -48,9 +50,15 @@ public class TikTokAudioTrack extends MpegTrack {
     @Override
     protected String getPlaybackUrl() {
         try {
-            final MetaData metaData = extractFromJson(this.trackInfo.uri);
+            if (this.urlCache == null) {
+                this.urlCache = getPlaybackUrl(this.trackInfo.identifier);
+            }
 
-            return metaData.uri;
+            if (this.failedOnce) {
+                return this.urlCache.getRight();
+            }
+
+            return this.urlCache.getLeft();
         } catch (IOException e) {
             throw new FriendlyException("Could not load TikTok video", SUSPICIOUS, e);
         }
@@ -60,8 +68,22 @@ public class TikTokAudioTrack extends MpegTrack {
     public void process(LocalAudioTrackExecutor executor) throws Exception {
         this.httpManager.loadCookies();
 
-        try (HttpInterface httpInterface = this.httpManager.getHttpInterface()) {
+        try (HttpInterface httpInterface = this.getHttpInterface()) {
             loadStream(executor, httpInterface);
+        }
+    }
+
+    @Override
+    protected void loadStream(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface) throws Exception {
+        try {
+            super.loadStream(localExecutor, httpInterface);
+        } catch (Exception e) {
+            if (this.failedOnce) {
+                throw e;
+            }
+
+            this.failedOnce = true;
+            super.loadStream(localExecutor, httpInterface);
         }
     }
 
@@ -82,7 +104,48 @@ public class TikTokAudioTrack extends MpegTrack {
         }
     }*/
 
-    protected MetaData extractFromJson(String url) throws IOException {
+    protected Pair<String, String> getPlaybackUrl(String identifier) throws IOException {
+        final HttpGet httpGet = new HttpGet(
+            "https://api2.musical.ly/aweme/v1/aweme/detail/?aweme_id=" + identifier
+        );
+
+        fakeChrome(httpGet);
+
+        try (final HttpInterface httpInterface = this.httpManager.getHttpInterface()) {
+            try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
+                final int statusCode = response.getStatusLine().getStatusCode();
+
+                if (statusCode != 200) {
+                    if (statusCode == 302) { // most likely a 404
+                        return null;
+                    }
+
+                    throw new IOException("Unexpected status code for video page response: " + statusCode);
+                }
+
+                final String string = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+                final JsonBrowser json = JsonBrowser.parse(string);
+                final JsonBrowser detail = json.get("aweme_detail");
+
+                // video (always correct audio)
+                final JsonBrowser video = detail.get("video");
+                final JsonBrowser downloadAddr = video.get("download_addr");
+                final JsonBrowser videoUrl = downloadAddr.get("url_list").index(0);
+
+                // music, fallback (needs testing)
+                final JsonBrowser music = detail.get("music");
+                final JsonBrowser playUrl = music.get("play_url");
+                final JsonBrowser musicUrl = playUrl.get("url_list").index(0);
+
+                return Pair.of(
+                    videoUrl.text(),
+                    musicUrl.text()
+                );
+            }
+        }
+    }
+
+    /*protected MetaData extractFromJson(String url) throws IOException {
         final Matcher matcher = VIDEO_REGEX.matcher(url);
 
         if (!matcher.matches()) {
@@ -117,6 +180,20 @@ public class TikTokAudioTrack extends MpegTrack {
                 return getMetaData(url, base);
             }
         }
+    }*/
+
+    @Override
+    protected InternalAudioTrack createAudioTrack(AudioTrackInfo trackInfo, SeekableInputStream stream) {
+        if (this.failedOnce && this.urlCache.getRight().contains(".mp3")) {
+            return new Mp3AudioTrack(trackInfo, stream);
+        }
+
+        return super.createAudioTrack(trackInfo, stream);
+    }
+
+    @Override
+    protected HttpInterface getHttpInterface() {
+        return this.httpManager.getHttpInterface();
     }
 
     @Override

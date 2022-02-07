@@ -25,7 +25,7 @@ plugins {
 }
 
 project.group = "com.dunctebot"
-project.version = "1.5.10"
+project.version = "1.6.0"
 val archivesBaseName = "sourcemanagers"
 
 repositories {
@@ -49,7 +49,7 @@ dependencies {
     testImplementation(group = "com.sedmelluq", name = "lavaplayer", version = "1.3.76")
 }
 
-configure<JavaPluginConvention> {
+configure<JavaPluginExtension> {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
 }

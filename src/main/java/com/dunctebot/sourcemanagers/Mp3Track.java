@@ -39,9 +39,13 @@ public class Mp3Track extends DelegatedAudioTrack {
         this.manager = manager;
     }
 
+    protected HttpInterface getHttpInterface() {
+        return this.manager.getHttpInterface();
+    }
+
     @Override
     public void process(LocalAudioTrackExecutor executor) throws Exception {
-        try (HttpInterface httpInterface = manager.getHttpInterface()) {
+        try (HttpInterface httpInterface = getHttpInterface()) {
             loadStream(executor, httpInterface);
         }
     }

@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 
 import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
 
-public class TikTokAudioTrackHttpManager {
+public class TikTokAudioTrackHttpManager implements AutoCloseable {
     private String cookie = null;
 
     protected final HttpInterfaceManager httpInterfaceManager;
@@ -82,6 +82,11 @@ public class TikTokAudioTrackHttpManager {
         }
     }
 
+    @Override
+    public void close() throws Exception {
+        this.httpInterfaceManager.close();
+    }
+
     private class TikTokFilter implements HttpContextFilter {
         @Override
         public void onContextOpen(HttpClientContext context) {
@@ -104,10 +109,6 @@ public class TikTokAudioTrackHttpManager {
                 .stream()
                 .map((c) -> c.getName() + '=' + c.getValue())
                 .collect(Collectors.joining("; "));
-
-            System.out.println("test " + testCookie);
-
-            //request.setHeader("cookie", testCookie);
 
             if (cookie != null) {
                 request.setHeader("cookie", cookie);
