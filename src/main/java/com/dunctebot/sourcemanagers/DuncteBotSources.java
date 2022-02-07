@@ -22,6 +22,7 @@ import com.dunctebot.sourcemanagers.ocremix.OCRemixAudioSourceManager;
 import com.dunctebot.sourcemanagers.pornhub.PornHubAudioSourceManager;
 import com.dunctebot.sourcemanagers.reddit.RedditAudioSourceManager;
 import com.dunctebot.sourcemanagers.speech.SpeechAudioSourceManager;
+import com.dunctebot.sourcemanagers.tiktok.TikTokAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 
@@ -36,7 +37,7 @@ public class DuncteBotSources {
         playerManager.registerSourceManager(new PornHubAudioSourceManager());
         playerManager.registerSourceManager(new RedditAudioSourceManager());
         playerManager.registerSourceManager(new OCRemixAudioSourceManager());
-        //playerManager.registerSourceManager(new TikTokAudioSourceManager());
+        playerManager.registerSourceManager(new TikTokAudioSourceManager());
 
     }
 }
