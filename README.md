@@ -1,6 +1,7 @@
 # Skybot source managers
 A bunch of extra source managers for LavaPlayer:
 
+- Mixcloud
 - ocremix.org
 - Clyp.it
 - Reddit

@@ -18,8 +18,39 @@ package com.dunctebot.sourcemanagers;
 
 import org.apache.http.HttpRequest;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+
 public class Utils {
     public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36";
+
+    public static String urlDecode(String in) {
+        return URLDecoder.decode(in, Charset.defaultCharset());
+    }
+
+    public static String urlEncode(String in) {
+        return URLEncoder.encode(in, Charset.defaultCharset());
+    }
+
+    public static String decryptXor(String input, String key) {
+        final StringBuilder sb = new StringBuilder();
+
+        while (key.length() < input.length()) {
+            key += key;
+        }
+
+        for (int i = 0; i < input.length(); i += 1) {
+            final int value1 = input.charAt(i);
+            final int value2 = key.charAt(i);
+
+            final int xorValue = value1 ^ value2;
+
+            sb.append((char) xorValue);
+        }
+
+        return sb.toString();
+    }
 
     public static boolean isURL(String url) {
         return url.matches("^https?:\\/\\/[-a-zA-Z0-9+&@#\\/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#\\/%=~_|]");
