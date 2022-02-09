@@ -17,16 +17,19 @@
 package com.dunctebot.sourcemanagers.mixcloud;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
-import com.dunctebot.sourcemanagers.IWillUseIdentifierInstead;
 import com.dunctebot.sourcemanagers.MpegTrack;
+import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
+import java.io.IOException;
 import java.util.Base64;
 
 import static com.dunctebot.sourcemanagers.Utils.decryptXor;
+import static com.dunctebot.sourcemanagers.Utils.urlDecode;
 
-public class MixcloudAudioTrack extends MpegTrack implements IWillUseIdentifierInstead {
+public class MixcloudAudioTrack extends MpegTrack {
     private static final String DECRYPTION_KEY = "IFYOUWANTTHEARTISTSTOGETPAIDDONOTDOWNLOADFROMMIXCLOUD";
 
     public MixcloudAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource manager) {
@@ -41,8 +44,26 @@ public class MixcloudAudioTrack extends MpegTrack implements IWillUseIdentifierI
 
     @Override
     protected String getPlaybackUrl() {
-        final String xorUrl = new String(Base64.getDecoder().decode(this.trackInfo.uri));
+        try {
+            final var trackInfo = getSourceManager().extractTrackInfoGraphQl(
+                this.trackInfo.author,
+                urlDecode(this.trackInfo.identifier)
+            );
+            final String encryptedUrl = trackInfo.get("streamInfo").get("url").text();
+            final String xorUrl = new String(Base64.getDecoder().decode(encryptedUrl));
 
-        return decryptXor(xorUrl, DECRYPTION_KEY);
+            return decryptXor(xorUrl, DECRYPTION_KEY);
+        } catch (IOException e) {
+            throw ExceptionTools.wrapUnfriendlyExceptions(
+                "Playback of mixcloud track failed",
+                FriendlyException.Severity.SUSPICIOUS,
+                e
+            );
+        }
+    }
+
+    @Override
+    public MixcloudAudioSourceManager getSourceManager() {
+        return (MixcloudAudioSourceManager) super.getSourceManager();
     }
 }

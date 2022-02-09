@@ -92,22 +92,21 @@ public class MixcloudAudioSourceManager extends AbstractDuncteBotHttpSource {
         final String title = trackInfo.get("name").text();
         final long duration = trackInfo.get("audioLength").as(Long.class) * 1000;
         final String uploader = trackInfo.get("owner").get("username").text(); // displayName
-        final String encryptedUrl = trackInfo.get("streamInfo").get("url").text();
 
         return new MixcloudAudioTrack(
             new AudioTrackInfo(
                 title,
                 uploader,
                 duration,
-                reference.identifier,
+                slug,
                 false,
-                encryptedUrl
+                reference.identifier
             ),
             this
         );
     }
 
-    private JsonBrowser extractTrackInfoGraphQl(String username, String slug) throws IOException {
+    protected JsonBrowser extractTrackInfoGraphQl(String username, String slug) throws IOException {
         final String slugFormatted = slug == null ? "" : String.format(", slug: \"%s\"", slug);
         final String query = String.format(
             "{\n  cloudcastLookup(lookup: {username: \"%s\"%s}) {\n    %s\n  }\n}",
