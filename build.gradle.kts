@@ -24,10 +24,8 @@ plugins {
 //    id("com.github.breadmoirai.github-release") version "2.2.12"
 }
 
-val versionSuffix = if (System.getenv("REPO") == null) "" else "-beta.${System.getenv("GITHUB_RUN_NUMBER")}"
-
 project.group = "com.dunctebot"
-project.version = "1.7.1$versionSuffix"
+project.version = "1.7.1"
 val archivesBaseName = "sourcemanagers"
 
 repositories {
@@ -84,8 +82,7 @@ publishing {
     repositories {
         maven {
             name = "duncte123-m2"
-//            url = uri("https://m2.duncte123.dev/releases")
-            url = uri("https://m2.duncte123.dev/${System.getenv("REPO")}")
+            url = uri("https://m2.duncte123.dev/releases")
             credentials {
                 username = System.getenv("USERNAME")
                 password = System.getenv("PASSWORD")

@@ -51,13 +51,8 @@ public class MixcloudAudioTrack extends MpegTrack {
             );
             final String encryptedUrl = trackInfo.get("streamInfo").get("url").text();
             final String xorUrl = new String(Base64.getDecoder().decode(encryptedUrl));
-            final String s = decryptXor(xorUrl, DECRYPTION_KEY);
 
-            System.out.println("====================================");
-            System.out.println(s);
-            System.out.println("====================================");
-
-            return s;
+            return decryptXor(xorUrl, DECRYPTION_KEY);
         } catch (IOException e) {
             throw ExceptionTools.wrapUnfriendlyExceptions(
                 "Playback of mixcloud track failed",
