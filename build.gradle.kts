@@ -25,7 +25,7 @@ plugins {
 }
 
 project.group = "com.dunctebot"
-project.version = "1.7.1"
+project.version = "1.8.0"
 val archivesBaseName = "sourcemanagers"
 
 repositories {
