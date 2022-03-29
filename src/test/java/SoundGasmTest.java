@@ -19,10 +19,8 @@ import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 
 public class SoundGasmTest {
     public static void main(String[] args) {
-        final var id1 = "https://soundgasm.net/u/not_your_habibTEA/My-Power-is-Out-Can-I-Come-In";
-
+        final var id1 = "";
         final var mngr = new SoundGasmAudioSourceManager();
-
         final var res1 = mngr.loadItem(null, new AudioReference(id1, ""));
 
         System.out.println(res1);

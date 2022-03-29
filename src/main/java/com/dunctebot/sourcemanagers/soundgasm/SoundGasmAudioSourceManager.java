@@ -29,7 +29,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -37,7 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SoundGasmAudioSourceManager extends AbstractDuncteBotHttpSource {
+public class SoundGasmAudioSourceManager extends AbstractDuncteBotHttpSource  {
     private static final Pattern URL_PATTERN = Pattern.compile("https?:\\/\\/soundgasm\\.net\\/u\\/(?<path>(?<author>[^\\/]+)\\/[^\\/]+)");
     private static final Pattern SOUND_PATTERN = Pattern.compile("m4a:(?:\\s+)?[\"']https:\\/\\/media\\.soundgasm\\.net\\/sounds\\/([^.]+)\\.m4a[\"']");
     private static final Pattern TITLE_PATTERN = Pattern.compile("<div class=\"jp-title\" aria-label=\"title\">([^<]+)<\\/div>");
