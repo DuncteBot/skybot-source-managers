@@ -34,7 +34,7 @@ You are able to register all the source managers via the following code snippet:
 AudioPlayerManager playerManager = new DefaultAudioPlayerManager(); // Your lavaplayer player manager
 String ttsLange = "en-US"; // The language for the speak/tts item
 
-DuncteBotSources.registerCustom(playerManager, ttsLange, 6);
+DuncteBotSources.registerAll(playerManager, ttsLange);
 ```
 
 [VERSION]: https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fm2.duncte123.dev%2Freleases%2Fcom%2Fdunctebot%2Fsourcemanagers%2Fmaven-metadata.xml

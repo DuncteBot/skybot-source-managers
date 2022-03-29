@@ -22,13 +22,43 @@ import com.dunctebot.sourcemanagers.mixcloud.MixcloudAudioSourceManager;
 import com.dunctebot.sourcemanagers.ocremix.OCRemixAudioSourceManager;
 import com.dunctebot.sourcemanagers.pornhub.PornHubAudioSourceManager;
 import com.dunctebot.sourcemanagers.reddit.RedditAudioSourceManager;
+import com.dunctebot.sourcemanagers.soundgasm.SoundGasmAudioSourceManager;
 import com.dunctebot.sourcemanagers.speech.SpeechAudioSourceManager;
 import com.dunctebot.sourcemanagers.tiktok.TikTokAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 
 public class DuncteBotSources {
-    public static void registerCustom(AudioPlayerManager playerManager, String speechLanguage, int playlistPageCount) {
+    /**
+     * Registers all custom source managers onto the player manager
+     *
+     * @param playerManager Your lavalink player manager
+     * @param speechLanguage The default language for the TTS engine
+     */
+    public static void registerAll(AudioPlayerManager playerManager, String speechLanguage) {
+        playerManager.registerSourceManager(new GetyarnAudioSourceManager());
+        playerManager.registerSourceManager(new ClypitAudioSourceManager());
+        playerManager.registerSourceManager(new SpeechAudioSourceManager(speechLanguage));
+        playerManager.registerSourceManager(new PornHubAudioSourceManager());
+        playerManager.registerSourceManager(new RedditAudioSourceManager());
+        playerManager.registerSourceManager(new OCRemixAudioSourceManager());
+        playerManager.registerSourceManager(new TikTokAudioSourceManager());
+        playerManager.registerSourceManager(new MixcloudAudioSourceManager());
+        playerManager.registerSourceManager(new SoundGasmAudioSourceManager());
+    }
+
+    /**
+     * Registers only the sourcemanagers used on DuncteBot, missing sources are as follows
+     *
+     * <ul>
+     *     <li>Mixcloud: they banned my server's ips</li>
+     * </ul>
+     *
+     * @param playerManager Lavaplayer player manager
+     * @param speechLanguage Default language for tts
+     * @param playlistPageCount Overriding the youtube playlist count
+     */
+    public static void registerDuncteBot(AudioPlayerManager playerManager, String speechLanguage, int playlistPageCount) {
         final YoutubeAudioSourceManager youtubeSource = playerManager.source(YoutubeAudioSourceManager.class);
         youtubeSource.setPlaylistPageCount(playlistPageCount);
 
@@ -39,7 +69,6 @@ public class DuncteBotSources {
         playerManager.registerSourceManager(new RedditAudioSourceManager());
         playerManager.registerSourceManager(new OCRemixAudioSourceManager());
         playerManager.registerSourceManager(new TikTokAudioSourceManager());
-        playerManager.registerSourceManager(new MixcloudAudioSourceManager());
-
+        playerManager.registerSourceManager(new SoundGasmAudioSourceManager());
     }
 }

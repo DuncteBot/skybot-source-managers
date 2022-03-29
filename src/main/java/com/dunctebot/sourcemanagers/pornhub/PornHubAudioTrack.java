@@ -54,7 +54,7 @@ public class PornHubAudioTrack extends MpegTrack {
         }
     }
 
-    private String loadFromMediaInfo() throws IOException {
+    public String loadFromMediaInfo() throws IOException {
         final HttpGet httpGet = new HttpGet(getPlayerPage(this.trackInfo.identifier));
 
         httpGet.setHeader("Cookie", "platform=pc; age_verified=1");
