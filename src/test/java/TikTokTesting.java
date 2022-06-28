@@ -15,16 +15,17 @@
  */
 
 import com.dunctebot.sourcemanagers.tiktok.TikTokAudioSourceManager;
+import com.dunctebot.sourcemanagers.tiktok.TikTokAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 
 public class TikTokTesting {
     public static void main(String[] args) {
         final var mngr = new TikTokAudioSourceManager();
         final var ref = new AudioReference("https://www.tiktok.com/@nataliya_xoxo_love/video/6923984361150745862", "aaaaa");
-        final var load = mngr.loadItem(null, ref);
+        final TikTokAudioTrack load = (TikTokAudioTrack) mngr.loadItem(null, ref);
 
         System.out.println(
-            load
+            load.getPlaybackUrl()
         );
     }
 }

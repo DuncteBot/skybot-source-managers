@@ -48,7 +48,7 @@ public class TikTokAudioTrack extends MpegTrack {
     }
 
     @Override
-    protected String getPlaybackUrl() {
+    public String getPlaybackUrl() {
         try {
             if (this.urlCache == null) {
                 this.urlCache = getPlaybackUrl(this.trackInfo.identifier);

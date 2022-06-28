@@ -46,7 +46,7 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final String VIDEO = "(?<video>[0-9]+)";
     protected static final Pattern VIDEO_REGEX = Pattern.compile("^" + BASE + "\\/" + USER + "\\/video\\/" + VIDEO + "(?:.*)$");
     private static final Pattern JS_REGEX = Pattern.compile(
-        "<script id=\"__NEXT_DATA__\" type=\"application/json\" crossorigin=\"anonymous\">(.*)<\\/script>");
+        "<script id=\"SIGI_STATE\" type=\"application/json\">(.*)<\\/script>");
     private static final Pattern SIGI_REGEX = Pattern.compile(
         "<script id=\"sigi-persisted-data\">(?:\n)?window\\[(?:'SIGI_STATE'|\"SIGI_STATE\")\\](?:\\s+)?=(?:\\s+)?(.*);(?:\\s+)?(?:.*)?<\\/script>");
 
@@ -119,7 +119,8 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
 
             if (matcher.find()) {
                 final JsonBrowser json = JsonBrowser.parse(matcher.group(1).trim());
-                final JsonBrowser base = json.get("props").get("pageProps").get("itemInfo").get("itemStruct");
+                final String videoId = json.get("ItemList").get("video").get("list").index(0).text();
+                final JsonBrowser base = json.get("ItemModule").get(videoId);
 
                 return getMetaData(url, base);
             }
