@@ -51,7 +51,7 @@ public class TikTokAudioTrack extends MpegTrack {
     public String getPlaybackUrl() {
         try {
             if (this.urlCache == null) {
-                this.urlCache = getPlaybackUrl(this.trackInfo.identifier);
+                this.urlCache = loadPlaybackUrl();
             }
 
             if (this.failedOnce) {
@@ -59,7 +59,7 @@ public class TikTokAudioTrack extends MpegTrack {
             }
 
             return this.urlCache.getLeft();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new FriendlyException("Could not load TikTok video", SUSPICIOUS, e);
         }
     }
@@ -104,45 +104,17 @@ public class TikTokAudioTrack extends MpegTrack {
         }
     }*/
 
-    protected Pair<String, String> getPlaybackUrl(String identifier) throws IOException {
-        final HttpGet httpGet = new HttpGet(
-            "https://api2.musical.ly/aweme/v1/aweme/detail/?aweme_id=" + identifier
+    protected Pair<String, String> loadPlaybackUrl() throws Exception {
+
+        final TikTokAudioSourceManager.MetaData metdata = this.getSourceManager().extractData(
+            this.trackInfo.author,
+            this.trackInfo.identifier
         );
 
-        fakeChrome(httpGet);
-
-        try (final HttpInterface httpInterface = this.httpManager.getHttpInterface()) {
-            try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
-                final int statusCode = response.getStatusLine().getStatusCode();
-
-                if (statusCode != 200) {
-                    if (statusCode == 302) { // most likely a 404
-                        return null;
-                    }
-
-                    throw new IOException("Unexpected status code for video page response: " + statusCode);
-                }
-
-                final String string = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-                final JsonBrowser json = JsonBrowser.parse(string);
-                final JsonBrowser detail = json.get("aweme_detail");
-
-                // video (always correct audio)
-                final JsonBrowser video = detail.get("video");
-                final JsonBrowser downloadAddr = video.get("download_addr");
-                final JsonBrowser videoUrl = downloadAddr.get("url_list").index(0);
-
-                // music, fallback (needs testing)
-                final JsonBrowser music = detail.get("music");
-                final JsonBrowser playUrl = music.get("play_url");
-                final JsonBrowser musicUrl = playUrl.get("url_list").index(0);
-
-                return Pair.of(
-                    videoUrl.text(),
-                    musicUrl.text()
-                );
-            }
-        }
+        return new Pair<>(
+            metdata.videoUrl,
+            metdata.musicUrl
+        );
     }
 
     /*protected MetaData extractFromJson(String url) throws IOException {
@@ -194,6 +166,11 @@ public class TikTokAudioTrack extends MpegTrack {
     @Override
     protected HttpInterface getHttpInterface() {
         return this.httpManager.getHttpInterface();
+    }
+
+    @Override
+    public TikTokAudioSourceManager getSourceManager() {
+        return (TikTokAudioSourceManager) super.getSourceManager();
     }
 
     @Override

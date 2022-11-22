@@ -94,7 +94,7 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
         return new TikTokAudioTrack(trackInfo, this);
     }
 
-    private MetaData extractData(String userId, String videoId) throws Exception {
+    MetaData extractData(String userId, String videoId) throws Exception {
         return extractData("https://www.tiktok.com/@" + userId + "/video/" + videoId);
     }
 
@@ -147,11 +147,14 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
 
         metaData.pageUrl = url;
         metaData.videoId = videoJson.get("id").safeText();
+        metaData.videoUrl = videoJson.get("downloadAddr").text();
         metaData.cover = videoJson.get("cover").safeText();
         metaData.title = base.get("desc").safeText();
 
         metaData.uri = videoJson.get("downloadAddr").safeText();
         metaData.duration = Integer.parseInt(videoJson.get("duration").safeText());
+
+        metaData.musicUrl = base.get("music").get("playUrl").text();
 
         final JsonBrowser author = base.get("author");
 
@@ -165,9 +168,13 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
         String cover; // image url
         String pageUrl;
         String videoId;
+        String videoUrl;
         String uri;
         int duration; // in seconds
         String title;
+
+        // backup
+        String musicUrl;
 
         // author
         String uniqueId;
@@ -191,6 +198,7 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
                 "cover='" + cover + '\'' +
                 ", pageUrl='" + pageUrl + '\'' +
                 ", videoId='" + videoId + '\'' +
+                ", videoUrl='" + videoUrl + '\'' +
                 ", uri='" + uri + '\'' +
                 ", duration=" + duration +
                 ", title='" + title + '\'' +
