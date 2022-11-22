@@ -19,7 +19,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 
 public class SoundGasmTest {
     public static void main(String[] args) {
-        final var id1 = "";
+        final var id1 = "https://soundgasm.net/u/skearch/test-audio";
         final var mngr = new SoundGasmAudioSourceManager();
         final var res1 = mngr.loadItem(null, new AudioReference(id1, ""));
 

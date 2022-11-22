@@ -90,8 +90,7 @@ public class SoundGasmAudioSourceManager extends AbstractDuncteBotHttpSource  {
             final Matcher soundPatternMatcher = SOUND_PATTERN.matcher(content);
 
             if (!soundPatternMatcher.find()) {
-                // TODO: throw? No sound file was found
-                return AudioReference.NO_TRACK;
+                throw new FriendlyException("Failed to extract audio file", FriendlyException.Severity.FAULT, null);
             }
 
             final Matcher titleMatcher = TITLE_PATTERN.matcher(content);
