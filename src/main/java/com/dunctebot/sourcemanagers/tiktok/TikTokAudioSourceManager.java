@@ -46,7 +46,7 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final String VIDEO = "(?<video>[0-9]+)";
     protected static final Pattern VIDEO_REGEX = Pattern.compile("^" + BASE + "\\/" + USER + "\\/video\\/" + VIDEO + "(?:.*)$");
     private static final Pattern JS_REGEX = Pattern.compile(
-        "<script id=\"SIGI_STATE\" type=\"application/json\">(.*)<\\/script>");
+        "<script id=\"SIGI_STATE\" type=\"application/json\">([^<]+)<\\/script>");
     private static final Pattern SIGI_REGEX = Pattern.compile(
         "<script id=\"sigi-persisted-data\">(?:\n)?window\\[(?:'SIGI_STATE'|\"SIGI_STATE\")\\](?:\\s+)?=(?:\\s+)?(.*);(?:\\s+)?(?:.*)?<\\/script>");
 
@@ -95,6 +95,7 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     }
 
     MetaData extractData(String userId, String videoId) throws Exception {
+        System.out.println("userId: " + userId + ", videoId: " + videoId);
         return extractData("https://www.tiktok.com/@" + userId + "/video/" + videoId);
     }
 
@@ -105,7 +106,6 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
 
         try (final CloseableHttpResponse response = getHttpInterface().execute(httpGet)) {
             final int statusCode = response.getStatusLine().getStatusCode();
-
             if (statusCode != 200) {
                 if (statusCode == 302) { // most likely a 404
                     return null;
@@ -146,19 +146,18 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
         final JsonBrowser videoJson = base.get("video");
 
         metaData.pageUrl = url;
-        metaData.videoId = videoJson.get("id").safeText();
+        metaData.videoId = base.get("id").safeText();
         metaData.videoUrl = videoJson.get("downloadAddr").text();
         metaData.cover = videoJson.get("cover").safeText();
         metaData.title = base.get("desc").safeText();
 
         metaData.uri = videoJson.get("downloadAddr").safeText();
+//        metaData.uri = videoJson.get("playAddr").safeText();
         metaData.duration = Integer.parseInt(videoJson.get("duration").safeText());
 
         metaData.musicUrl = base.get("music").get("playUrl").text();
 
-        final JsonBrowser author = base.get("author");
-
-        metaData.uniqueId = author.get("uniqueId").safeText();
+        metaData.uniqueId = base.get("author").safeText();
 
         return metaData;
     }

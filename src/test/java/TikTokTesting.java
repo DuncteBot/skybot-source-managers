@@ -21,11 +21,15 @@ import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 public class TikTokTesting {
     public static void main(String[] args) {
         final var mngr = new TikTokAudioSourceManager();
-        final var ref = new AudioReference("https://www.tiktok.com/@nataliya_xoxo_love/video/6923984361150745862", "aaaaa");
+//        final var ref = new AudioReference("https://www.tiktok.com/@nataliya_xoxo_love/video/6923984361150745862", "aaaaa");
+        final var ref = new AudioReference("https://www.tiktok.com/@kallmekris/video/7229737213712436486?lang=en", "aaaaa");
         final TikTokAudioTrack load = (TikTokAudioTrack) mngr.loadItem(null, ref);
 
         System.out.println(
             load.getPlaybackUrl()
         );
+
+        System.out.println("Url cache");
+        System.out.println(load.getUrlCache());
     }
 }

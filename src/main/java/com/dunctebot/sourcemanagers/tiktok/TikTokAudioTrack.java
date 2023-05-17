@@ -47,6 +47,10 @@ public class TikTokAudioTrack extends MpegTrack {
         super(trackInfo, manager);
     }
 
+    public Pair<String, String> getUrlCache() {
+        return urlCache;
+    }
+
     @Override
     public String getPlaybackUrl() {
         try {
