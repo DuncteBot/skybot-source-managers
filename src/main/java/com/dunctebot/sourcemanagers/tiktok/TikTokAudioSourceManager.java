@@ -151,8 +151,8 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
         metaData.cover = videoJson.get("cover").safeText();
         metaData.title = base.get("desc").safeText();
 
-        metaData.uri = videoJson.get("downloadAddr").safeText();
-//        metaData.uri = videoJson.get("playAddr").safeText();
+//        metaData.uri = videoJson.get("downloadAddr").safeText();
+        metaData.uri = videoJson.get("playAddr").safeText();
         metaData.duration = Integer.parseInt(videoJson.get("duration").safeText());
 
         metaData.musicUrl = base.get("music").get("playUrl").text();

@@ -67,7 +67,7 @@ public class Mp3Track extends DelegatedAudioTrack {
         return this.trackInfo.length;
     }
 
-    protected String getPlaybackUrl() {
+    public String getPlaybackUrl() {
         return this.trackInfo.identifier;
     }
 

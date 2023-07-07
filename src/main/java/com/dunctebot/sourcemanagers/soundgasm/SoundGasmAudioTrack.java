@@ -33,7 +33,7 @@ public class SoundGasmAudioTrack extends MpegTrack {
     }
 
     @Override
-    protected String getPlaybackUrl() {
+    public String getPlaybackUrl() {
         return "https://media.soundgasm.net/sounds/" + this.trackInfo.identifier + ".m4a";
     }
 

@@ -28,7 +28,7 @@ public class RedditAudioTrack extends MpegTrack {
     }
 
     @Override
-    protected String getPlaybackUrl() {
+    public String getPlaybackUrl() {
         return getPlaybackUrl(this.trackInfo.identifier);
     }
 

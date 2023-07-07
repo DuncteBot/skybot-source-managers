@@ -5,9 +5,9 @@ name: Build library
 
 on:
   push:
-    branches-ignore: [ master ]
+    branches-ignore: [ not-master ]
   pull_request:
-    branches-ignore: [ master ]
+    branches-ignore: [ not-master ]
 
 jobs:
   build:

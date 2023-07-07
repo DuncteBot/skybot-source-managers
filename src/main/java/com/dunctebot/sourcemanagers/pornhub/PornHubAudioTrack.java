@@ -46,7 +46,7 @@ public class PornHubAudioTrack extends MpegTrack {
     }
 
     @Override
-    protected String getPlaybackUrl() {
+    public String getPlaybackUrl() {
         try {
             return loadFromMediaInfo();
         } catch (IOException e) {

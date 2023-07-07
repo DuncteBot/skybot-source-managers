@@ -57,7 +57,7 @@ public class OCRemixAudioTrack extends Mp3Track implements IWillUseIdentifierIns
     }
 
     @Override
-    protected String getPlaybackUrl() {
+    public String getPlaybackUrl() {
         return "https://" + MUSIC_HOSTS[this.hostIndex] + this.trackInfo.uri;
     }
 }

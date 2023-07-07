@@ -33,7 +33,7 @@ public class GetyarnAudioTrack extends MpegTrack {
     }
 
     @Override
-    protected String getPlaybackUrl() {
+    public String getPlaybackUrl() {
         return "https://y.yarn.co/" + this.trackInfo.identifier + ".mp4?v=0";
     }
 }
