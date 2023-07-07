@@ -26,6 +26,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
+import com.sedmelluq.discord.lavaplayer.track.info.AudioTrackInfoBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -62,11 +63,13 @@ public class ClypitAudioSourceManager extends AbstractDuncteBotHttpSource {
                 return AudioReference.NO_TRACK;
             }
 
-            return new IdentifiedAudioReference(
+            final IdentifiedAudioReference ref = new IdentifiedAudioReference(
                 json.get("Mp3Url").safeText(),
                 reference.identifier,
                 json.get("Title").safeText()
             );
+
+            return new ClypitAudioTrack(AudioTrackInfoBuilder.create(ref, null).build(), this);
         }
         catch (Exception e) {
             throw ExceptionTools.wrapUnfriendlyExceptions("Something went wrong", FriendlyException.Severity.SUSPICIOUS, e);

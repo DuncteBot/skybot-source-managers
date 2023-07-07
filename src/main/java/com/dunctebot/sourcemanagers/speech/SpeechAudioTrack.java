@@ -22,9 +22,13 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 public class SpeechAudioTrack extends Mp3Track {
-
     SpeechAudioTrack(AudioTrackInfo trackInfo, AbstractDuncteBotHttpSource manager) {
         super(trackInfo, manager);
+    }
+
+    @Override
+    public String getPlaybackUrl() {
+        return this.trackInfo.uri;
     }
 
     @Override

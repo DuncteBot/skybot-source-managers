@@ -17,8 +17,8 @@
 package com.dunctebot.sourcemanagers.speech;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
-import com.dunctebot.sourcemanagers.IdentifiedAudioReference;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -75,7 +75,14 @@ public class SpeechAudioSourceManager extends AbstractDuncteBotHttpSource {
             .replace("%query%", encoded);
 
         // Redirect to somewhere else
-        return new IdentifiedAudioReference(mp3URL, reference.identifier, "Speaking " + data);
+        return new SpeechAudioTrack(new AudioTrackInfo(
+            "Speaking " + data,
+            "TTS B0t",
+            Units.CONTENT_LENGTH_UNKNOWN,
+            reference.identifier,
+            false,
+            mp3URL
+        ), this);
     }
 
     @Override
