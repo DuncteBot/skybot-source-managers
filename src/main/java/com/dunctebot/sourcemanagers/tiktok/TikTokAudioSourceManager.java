@@ -23,6 +23,7 @@ import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.track.AudioItem;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -41,6 +42,7 @@ import java.util.regex.Pattern;
 import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
 
 public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
+    private final TikTokAudioTrackHttpManager httpManager = new TikTokAudioTrackHttpManager();
     private static final String BASE = "https:\\/\\/(?:www\\.|m\\.)?tiktok\\.com";
     private static final String USER = "@(?<user>[^/]+)";
     private static final String VIDEO = "(?<video>[0-9]+)";
@@ -97,6 +99,11 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
     MetaData extractData(String userId, String videoId) throws Exception {
         System.out.println("userId: " + userId + ", videoId: " + videoId);
         return extractData("https://www.tiktok.com/@" + userId + "/video/" + videoId);
+    }
+
+    @Override
+    public HttpInterface getHttpInterface() {
+        return httpManager.getHttpInterface();
     }
 
     protected MetaData extractData(String url) throws Exception {

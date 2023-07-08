@@ -22,7 +22,9 @@ import com.dunctebot.sourcemanagers.Pair;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
+import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
+import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
@@ -32,14 +34,17 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.SUSPICIOUS;
 
 public class TikTokAudioTrack extends MpegTrack {
-    private final TikTokAudioTrackHttpManager httpManager = new TikTokAudioTrackHttpManager();
     private Pair<String, String> urlCache = null;
     private boolean failedOnce = false;
 
@@ -70,14 +75,12 @@ public class TikTokAudioTrack extends MpegTrack {
 
     @Override
     public void process(LocalAudioTrackExecutor executor) throws Exception {
-        this.httpManager.loadCookies();
-
         try (HttpInterface httpInterface = this.getHttpInterface()) {
             loadStream(executor, httpInterface);
         }
     }
 
-    @Override
+    /*@Override
     protected void loadStream(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface) throws Exception {
         try {
             super.loadStream(localExecutor, httpInterface);
@@ -89,14 +92,15 @@ public class TikTokAudioTrack extends MpegTrack {
             this.failedOnce = true;
             super.loadStream(localExecutor, httpInterface);
         }
-    }
+    }*/
 
-    /*@Override
+    // TODO: load the track url THROUGH the HTTP interface, see if that works
+    @Override
     protected void loadStream(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface) throws Exception {
         final String trackUrl = getPlaybackUrl();
         log.debug("Starting {} track from URL: {}", getSourceManager().getSourceName(), trackUrl);
         // Setting contentLength (last param) to null makes it default to Long.MAX_VALUE
-        try (final PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(trackUrl), this.getTrackDuration())) {
+        try (final PersistentHttpStream stream = new PersistentHttpStream(httpInterface, new URI(trackUrl), Units.CONTENT_LENGTH_UNKNOWN)) {
             // dump the stream
             Files.copy(
                 stream,
@@ -106,7 +110,7 @@ public class TikTokAudioTrack extends MpegTrack {
 
             processDelegate(createAudioTrack(this.trackInfo, stream), localExecutor);
         }
-    }*/
+    }
 
     protected Pair<String, String> loadPlaybackUrl() throws Exception {
 
@@ -169,7 +173,7 @@ public class TikTokAudioTrack extends MpegTrack {
 
     @Override
     protected HttpInterface getHttpInterface() {
-        return this.httpManager.getHttpInterface();
+        return this.getSourceManager().getHttpInterface();
     }
 
     @Override

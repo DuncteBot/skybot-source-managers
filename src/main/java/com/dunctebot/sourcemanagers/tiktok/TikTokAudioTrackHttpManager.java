@@ -46,7 +46,7 @@ public class TikTokAudioTrackHttpManager implements AutoCloseable {
     private String cookie = null;
 
     protected final HttpInterfaceManager httpInterfaceManager;
-    private final CookieSpec cookieSpec = new DefaultCookieSpec(); // DefaultCookieSpec does not parse (was BrowserCompatSpec)
+    private final CookieSpec cookieSpec = new BrowserCompatSpec(); // DefaultCookieSpec does not parse (was BrowserCompatSpec)
     private final CookieStore cookieStore = new BasicCookieStore();
 
     public TikTokAudioTrackHttpManager() {

@@ -41,7 +41,7 @@ repositories {
 dependencies {
     // build override for age-restricted videos
 //    implementation(group = "com.github.duncte123", name = "lavaplayer", version = "be6e364")
-    compileOnly(group = "com.github.walkyst", name = "lavaplayer-fork", version = "1.3.99.1")
+    compileOnly(group = "com.github.walkyst", name = "lavaplayer-fork", version = "1.4.2")
 
     implementation("commons-io:commons-io:2.6")
     implementation(group = "org.jsoup", name = "jsoup", version = "1.12.1")
