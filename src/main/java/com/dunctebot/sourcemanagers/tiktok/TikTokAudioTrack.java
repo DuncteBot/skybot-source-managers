@@ -21,27 +21,14 @@ import com.dunctebot.sourcemanagers.MpegTrack;
 import com.dunctebot.sourcemanagers.Pair;
 import com.sedmelluq.discord.lavaplayer.container.mp3.Mp3AudioTrack;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.tools.JsonBrowser;
 import com.sedmelluq.discord.lavaplayer.tools.Units;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
-import com.sedmelluq.discord.lavaplayer.tools.io.PersistentHttpStream;
 import com.sedmelluq.discord.lavaplayer.tools.io.SeekableInputStream;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.sedmelluq.discord.lavaplayer.track.InternalAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.LocalAudioTrackExecutor;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-
-import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.SUSPICIOUS;
 
 public class TikTokAudioTrack extends MpegTrack {
@@ -80,7 +67,7 @@ public class TikTokAudioTrack extends MpegTrack {
         }
     }
 
-    /*@Override
+    @Override
     protected void loadStream(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface) throws Exception {
         try {
             super.loadStream(localExecutor, httpInterface);
@@ -92,10 +79,9 @@ public class TikTokAudioTrack extends MpegTrack {
             this.failedOnce = true;
             super.loadStream(localExecutor, httpInterface);
         }
-    }*/
+    }
 
-    // TODO: load the track url THROUGH the HTTP interface, see if that works
-    @Override
+    /*@Override
     protected void loadStream(LocalAudioTrackExecutor localExecutor, HttpInterface httpInterface) throws Exception {
         final String trackUrl = getPlaybackUrl();
         log.debug("Starting {} track from URL: {}", getSourceManager().getSourceName(), trackUrl);
@@ -110,10 +96,9 @@ public class TikTokAudioTrack extends MpegTrack {
 
             processDelegate(createAudioTrack(this.trackInfo, stream), localExecutor);
         }
-    }
+    }*/
 
     protected Pair<String, String> loadPlaybackUrl() throws Exception {
-
         final TikTokAudioSourceManager.MetaData metdata = this.getSourceManager().extractData(
             this.trackInfo.author,
             this.trackInfo.identifier
@@ -125,43 +110,6 @@ public class TikTokAudioTrack extends MpegTrack {
         );
     }
 
-    /*protected MetaData extractFromJson(String url) throws IOException {
-        final Matcher matcher = VIDEO_REGEX.matcher(url);
-
-        if (!matcher.matches()) {
-            throw new IOException("Url does not match tiktok anymore? wtf");
-        }
-
-        final String user = matcher.group("user");
-        final String video = matcher.group("video");
-
-        final HttpGet httpGet = new HttpGet(
-            "https://www.tiktok.com/node/share/video/@" + user + '/' + video
-        );
-
-        fakeChrome(httpGet);
-
-        try (final HttpInterface httpInterface = this.httpManager.getHttpInterface()) {
-            try (final CloseableHttpResponse response = httpInterface.execute(httpGet)) {
-                final int statusCode = response.getStatusLine().getStatusCode();
-
-                if (statusCode != 200) {
-                    if (statusCode == 302) { // most likely a 404
-                        return null;
-                    }
-
-                    throw new IOException("Unexpected status code for video page response: " + statusCode);
-                }
-
-                final String string = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
-                final JsonBrowser json = JsonBrowser.parse(string);
-                final JsonBrowser base = json.get("itemInfo").get("itemStruct");
-
-                return getMetaData(url, base);
-            }
-        }
-    }*/
-
     @Override
     protected InternalAudioTrack createAudioTrack(AudioTrackInfo trackInfo, SeekableInputStream stream) {
         if (this.failedOnce && this.urlCache.getRight().contains(".mp3")) {
@@ -169,6 +117,11 @@ public class TikTokAudioTrack extends MpegTrack {
         }
 
         return super.createAudioTrack(trackInfo, stream);
+    }
+
+    @Override
+    protected long getTrackDuration() {
+        return Units.CONTENT_LENGTH_UNKNOWN;
     }
 
     @Override

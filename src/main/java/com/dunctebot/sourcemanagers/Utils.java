@@ -23,7 +23,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 
 public class Utils {
-    public static final String USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36";
+    public static final String USER_AGENT = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/114.0";
 
     public static String urlDecode(String in) {
         return URLDecoder.decode(in, Charset.defaultCharset());
@@ -57,18 +57,27 @@ public class Utils {
     }
 
     public static void fakeChrome(HttpRequest request) {
+        fakeChrome(request, false);
+    }
+
+    public static void fakeChrome(HttpRequest request, boolean isVideo) {
         request.setHeader("Connection", "keep-alive");
         request.setHeader("DNT", "1");
         request.setHeader("Upgrade-Insecure-Requests", "1");
-        request.setHeader("Accept", "*/*");
+        request.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,video/mp4,image/avif,image/webp,*/*;q=0.8");
 //        request.setHeader("Accept-Encoding", "gzip, deflate, br");
         request.setHeader("Accept-Encoding", "none");
+        request.setHeader("TE", "trailers");
         request.setHeader("Accept-Language", "en-US,en;q=0.9");
-        request.setHeader("Sec-Ch-Ua", "\" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"97\", \"Chromium\";v=\"97\"");
-        request.setHeader("Sec-Ch-Ua-Mobile", "?0");
-        request.setHeader("Sec-Fetch-Dest", "document");
-        request.setHeader("Sec-Fetch-Mode", "no-cors");
-        request.setHeader("Sec-Fetch-Site", "cross-site");
+
+        if (isVideo) {
+            request.setHeader("Sec-Fetch-Dest", "empty");
+        } else {
+            request.setHeader("Sec-Fetch-Dest", "document");
+        }
+
+        request.setHeader("Sec-Fetch-Mode", "cors");
+        request.setHeader("Sec-Fetch-Site", "same-site");
         request.setHeader("User-Agent", USER_AGENT);
     }
 

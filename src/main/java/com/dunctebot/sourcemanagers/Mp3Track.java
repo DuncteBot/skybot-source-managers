@@ -63,6 +63,10 @@ public class Mp3Track extends DelegatedAudioTrack {
         return new Mp3AudioTrack(trackInfo, stream);
     }
 
+    /**
+     * A special helper to determine the length of the file in milliseconds.
+     * @return The clip length in milliseconds, for some sources this needs to be set to unknown for them to properly work.
+     */
     protected long getTrackDuration() {
         return this.trackInfo.length;
     }

@@ -20,33 +20,21 @@ import com.sedmelluq.discord.lavaplayer.tools.http.HttpContextFilter;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpClientTools;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterface;
 import com.sedmelluq.discord.lavaplayer.tools.io.HttpInterfaceManager;
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieOrigin;
-import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.cookie.BrowserCompatSpec;
-import org.apache.http.impl.cookie.DefaultCookieSpec;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.dunctebot.sourcemanagers.Utils.fakeChrome;
 
 public class TikTokAudioTrackHttpManager implements AutoCloseable {
-    private String cookie = null;
+//    private String cookie = null;
 
     protected final HttpInterfaceManager httpInterfaceManager;
-    private final CookieSpec cookieSpec = new BrowserCompatSpec(); // DefaultCookieSpec does not parse (was BrowserCompatSpec)
+//    private final CookieSpec cookieSpec = new BrowserCompatSpec(); // DefaultCookieSpec does not parse (was BrowserCompatSpec)
     private final CookieStore cookieStore = new BasicCookieStore();
 
     public TikTokAudioTrackHttpManager() {
@@ -63,7 +51,7 @@ public class TikTokAudioTrackHttpManager implements AutoCloseable {
         return httpInterfaceManager.getInterface();
     }
 
-    protected void loadCookies() throws IOException, MalformedCookieException {
+    /*protected void loadCookies() throws IOException, MalformedCookieException {
         try (final HttpInterface httpInterface = httpInterfaceManager.getInterface()) {
             final HttpGet httpGet = new HttpGet("https://www.tiktok.com/");
 
@@ -81,7 +69,7 @@ public class TikTokAudioTrackHttpManager implements AutoCloseable {
                     .collect(Collectors.joining("; "));
             }
         }
-    }
+    }*/
 
     @Override
     public void close() throws Exception {
@@ -102,19 +90,16 @@ public class TikTokAudioTrackHttpManager implements AutoCloseable {
         @Override
         public void onRequest(HttpClientContext context, HttpUriRequest request, boolean isRepetition) {
             // set standard headers
-            fakeChrome(request);
+            final boolean isVideo = request.getURI().getPath().contains("video");
+            fakeChrome(request, isVideo);
 
-            // TODO: set these cookies instead?
             final String testCookie = context.getCookieStore()
                 .getCookies()
                 .stream()
                 .map((c) -> c.getName() + '=' + c.getValue())
                 .collect(Collectors.joining("; "));
 
-            if (cookie != null) {
-                request.setHeader("cookie", cookie);
-            }
-
+            request.setHeader("Cookie", testCookie);
             request.setHeader("Referer", "https://www.tiktok.com/");
         }
 
