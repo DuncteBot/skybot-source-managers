@@ -21,6 +21,7 @@ import com.dunctebot.sourcemanagers.MpegTrack;
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.tools.Units;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 import java.io.IOException;
@@ -60,6 +61,11 @@ public class MixcloudAudioTrack extends MpegTrack {
                 e
             );
         }
+    }
+
+    @Override
+    protected AudioTrack makeShallowClone() {
+        return new MixcloudAudioTrack(trackInfo, getSourceManager());
     }
 
     @Override

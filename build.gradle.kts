@@ -25,7 +25,7 @@ plugins {
 }
 
 project.group = "com.dunctebot"
-project.version = "1.8.4"
+project.version = "1.8.5"
 val archivesBaseName = "sourcemanagers"
 
 repositories {
@@ -43,11 +43,11 @@ dependencies {
 //    implementation(group = "com.github.duncte123", name = "lavaplayer", version = "be6e364")
     compileOnly(group = "com.github.walkyst", name = "lavaplayer-fork", version = "1.4.2")
 
-    implementation("commons-io:commons-io:2.6")
-    implementation(group = "org.jsoup", name = "jsoup", version = "1.12.1")
+    implementation("commons-io:commons-io:2.7")
+    implementation(group = "org.jsoup", name = "jsoup", version = "1.15.3")
     implementation(group = "com.google.code.findbugs", name = "jsr305", version = "3.0.2")
 
-    testImplementation(group = "com.github.walkyst", name = "lavaplayer-fork", version = "1.3.99.1")
+    testImplementation(group = "com.github.walkyst", name = "lavaplayer-fork", version = "1.4.2")
 }
 
 configure<JavaPluginExtension> {

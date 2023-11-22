@@ -29,6 +29,9 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -41,16 +44,50 @@ import static com.dunctebot.sourcemanagers.Utils.urlDecode;
 import static com.dunctebot.sourcemanagers.Utils.urlEncode;
 
 public class MixcloudAudioSourceManager extends AbstractDuncteBotHttpSource {
-    private static final String REQUEST_STRUCTURE = "audioLength\n" +
-        "    name\n" +
-        "    owner {\n" +
-        "      username\n" +
+    private static final String GRAPHQL_AUDIO_REQUEST = "query PlayerHeroQuery(\n" +
+        "    $lookup: CloudcastLookup!\n" +
+        ") {\n" +
+        "    cloudcast: cloudcastLookup(lookup: $lookup) {\n" +
+        "        id\n" +
+        "        name\n" +
+        "        owner {\n" +
+        "            ...AudioPageAvatar_user\n" +
+        "            id\n" +
+        "        }\n" +
+        "        restrictedReason\n" +
+        "        seekRestriction\n" +
+        "        ...PlayButton_cloudcast\n" +
         "    }\n" +
+        "}\n" +
+        "\n" +
+        "fragment AudioPageAvatar_user on User {\n" +
+        "    displayName\n" +
+        "    username\n" +
+        "}\n" +
+        "\n" +
+        "fragment PlayButton_cloudcast on Cloudcast {\n" +
+        "    restrictedReason\n" +
+        "    owner {\n" +
+        "        displayName\n" +
+        "        country\n" +
+        "        username\n" +
+        "        isSubscribedTo\n" +
+        "        isViewer\n" +
+        "        id\n" +
+        "    }\n" +
+        "    slug\n" +
+        "    id\n" +
+        "    isDraft\n" +
+        "    isPlayable\n" +
         "    streamInfo {\n" +
-        "      dashUrl\n" +
-        "      hlsUrl\n" +
-        "      url\n" +
-        "    }";
+        "        hlsUrl\n" +
+        "        dashUrl\n" +
+        "        url\n" +
+        "        uuid\n" +
+        "    }\n" +
+        "    audioLength\n" +
+        "    seekRestriction\n" +
+        "}\n";
     private static final Pattern URL_REGEX = Pattern.compile("https?://(?:(?:www|beta|m)\\.)?mixcloud\\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)/?");
 
     @Override
@@ -89,6 +126,16 @@ public class MixcloudAudioSourceManager extends AbstractDuncteBotHttpSource {
             return AudioReference.NO_TRACK;
         }
 
+        final JsonBrowser restrictedReason = trackInfo.get("restrictedReason");
+
+        if (!restrictedReason.isNull()) {
+            throw new FriendlyException(
+                "Playback of this track is restricted.",
+                FriendlyException.Severity.COMMON,
+                new Exception(restrictedReason.text())
+            );
+        }
+
         final String title = trackInfo.get("name").text();
         final long duration = trackInfo.get("audioLength").as(Long.class) * 1000;
         final String uploader = trackInfo.get("owner").get("username").text(); // displayName
@@ -107,17 +154,23 @@ public class MixcloudAudioSourceManager extends AbstractDuncteBotHttpSource {
     }
 
     protected JsonBrowser extractTrackInfoGraphQl(String username, String slug) throws IOException {
-        final String slugFormatted = slug == null ? "" : String.format(", slug: \"%s\"", slug);
-        final String query = String.format(
-            "{\n  cloudcastLookup(lookup: {username: \"%s\"%s}) {\n    %s\n  }\n}",
-            username,
-            slugFormatted,
-            REQUEST_STRUCTURE
-        );
-        final String encodedQuery = urlEncode(query);
-        final HttpGet httpGet = new HttpGet("https://www.mixcloud.com/graphql?query=" + encodedQuery);
+        final var body = JsonBrowser.newMap();
 
-        try (final CloseableHttpResponse res = getHttpInterface().execute(httpGet)) {
+        body.put("query", GRAPHQL_AUDIO_REQUEST);
+
+        final var variables = JsonBrowser.newMap();
+
+        variables.put("lookup", new MixcloudLookup(
+            slug, username
+        ));
+
+        body.put("variables", variables);
+
+        final HttpPost httpPost = new HttpPost("https://app.mixcloud.com/graphql");
+
+        httpPost.setEntity(new StringEntity(body.text(), ContentType.APPLICATION_JSON));
+
+        try (final CloseableHttpResponse res = getHttpInterface().execute(httpPost)) {
             final int statusCode = res.getStatusLine().getStatusCode();
 
             if (statusCode != 200) {
@@ -129,7 +182,7 @@ public class MixcloudAudioSourceManager extends AbstractDuncteBotHttpSource {
             }
 
             final String content = IOUtils.toString(res.getEntity().getContent(), StandardCharsets.UTF_8);
-            final JsonBrowser json = JsonBrowser.parse(content).get("data").get("cloudcastLookup");
+            final JsonBrowser json = JsonBrowser.parse(content).get("data").get("cloudcast");
 
             if (json.get("streamInfo").isNull()) {
                 return null;
