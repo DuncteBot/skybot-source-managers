@@ -23,8 +23,8 @@ public class MixcloudTest {
     public static void main(String[] args) {
 //        System.out.println(MixcloudAudioSourceManager.GRAPHQL_AUDIO_REQUEST);
 
-//        final var url = "https://www.mixcloud.com/jordy-boesten2/the-egotripper-lets-walk-to-my-house-mix-259/";
-        final var url = "https://www.mixcloud.com/Hirockn/the-100-best-tracks-2020-hip-hop-rb-pops-etc-the-weeknd-dababy-dua-lipa-juice-wrld-etc/";
+        final var url = "https://www.mixcloud.com/jordy-boesten2/the-egotripper-lets-walk-to-my-house-mix-259/";
+//        final var url = "https://www.mixcloud.com/Hirockn/the-100-best-tracks-2020-hip-hop-rb-pops-etc-the-weeknd-dababy-dua-lipa-juice-wrld-etc/";
         final var mnrg = new MixcloudAudioSourceManager();
         final AudioItem track = mnrg.loadItem(null, new AudioReference(url, null));
 

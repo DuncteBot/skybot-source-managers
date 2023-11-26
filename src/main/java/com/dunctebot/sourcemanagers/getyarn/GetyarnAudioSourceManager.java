@@ -55,7 +55,9 @@ public class GetyarnAudioSourceManager extends AbstractDuncteBotHttpSource {
         );
 
         return new GetyarnAudioTrack(
-            AudioTrackInfoBuilder.create(ref, null).build(),
+            AudioTrackInfoBuilder.create(ref, null)
+                .setArtworkUrl("https://y.yarn.co/" + videoId + "_screenshot.jpg")
+                .build(),
             this
         );
     }

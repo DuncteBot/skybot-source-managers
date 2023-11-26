@@ -28,7 +28,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -41,15 +40,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.dunctebot.sourcemanagers.Utils.urlDecode;
-import static com.dunctebot.sourcemanagers.Utils.urlEncode;
 
 public class MixcloudAudioSourceManager extends AbstractDuncteBotHttpSource {
+    private static final String THUMBNAILER_BASE = "https://thumbnailer.mixcloud.com/unsafe/390x390/";
     private static final String GRAPHQL_AUDIO_REQUEST = "query PlayerHeroQuery(\n" +
         "    $lookup: CloudcastLookup!\n" +
         ") {\n" +
         "    cloudcast: cloudcastLookup(lookup: $lookup) {\n" +
         "        id\n" +
         "        name\n" +
+        "        picture {\n" +
+        "            isLight\n" +
+        "            primaryColor\n" +
+        "            darkPrimaryColor: primaryColor(darken: 60)\n" +
+        "            ...UGCImage_picture\n" +
+        "        }\n" +
         "        owner {\n" +
         "            ...AudioPageAvatar_user\n" +
         "            id\n" +
@@ -87,6 +92,11 @@ public class MixcloudAudioSourceManager extends AbstractDuncteBotHttpSource {
         "    }\n" +
         "    audioLength\n" +
         "    seekRestriction\n" +
+        "}\n" +
+        "\n" +
+        "fragment UGCImage_picture on Picture {\n" +
+        "    urlRoot\n" +
+        "    primaryColor\n" +
         "}\n";
     private static final Pattern URL_REGEX = Pattern.compile("https?://(?:(?:www|beta|m)\\.)?mixcloud\\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)/?");
 
@@ -136,6 +146,7 @@ public class MixcloudAudioSourceManager extends AbstractDuncteBotHttpSource {
             );
         }
 
+        final String picturePath = trackInfo.get("picture").get("urlRoot").text();
         final String title = trackInfo.get("name").text();
         final long duration = trackInfo.get("audioLength").as(Long.class) * 1000;
         final String uploader = trackInfo.get("owner").get("username").text(); // displayName
@@ -147,7 +158,9 @@ public class MixcloudAudioSourceManager extends AbstractDuncteBotHttpSource {
                 duration,
                 slug,
                 false,
-                reference.identifier
+                reference.identifier,
+                THUMBNAILER_BASE + picturePath,
+                null
             ),
             this
         );

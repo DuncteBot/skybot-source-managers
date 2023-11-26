@@ -25,13 +25,13 @@ plugins {
 }
 
 project.group = "com.dunctebot"
-project.version = "1.8.5"
+project.version = "1.9.0"
 val archivesBaseName = "sourcemanagers"
 
 repositories {
     mavenCentral()
     jcenter()
-    maven("https://m2.dv8tion.net/releases")
+    maven("https://maven.lavalink.dev/releases")
 
     maven {
         url = uri("https://jitpack.io")
@@ -41,11 +41,12 @@ repositories {
 dependencies {
     compileOnly(group = "dev.arbjerg", name = "lavaplayer", version = "2.0.3")
 
+    implementation("org.slf4j:slf4j-api:2.0.7")
     implementation("commons-io:commons-io:2.7")
     implementation(group = "org.jsoup", name = "jsoup", version = "1.15.3")
     implementation(group = "com.google.code.findbugs", name = "jsr305", version = "3.0.2")
 
-    testImplementation(group = "dev.arbjerg", name = "lavaplayer", version = " 2.0.3")
+    testImplementation(group = "dev.arbjerg", name = "lavaplayer", version = "2.0.3")
 }
 
 configure<JavaPluginExtension> {
