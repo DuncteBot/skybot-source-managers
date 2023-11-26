@@ -17,7 +17,6 @@
 package com.dunctebot.sourcemanagers.tiktok;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
-import com.dunctebot.sourcemanagers.AudioTrackInfoWithImage;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -185,15 +184,16 @@ public class TikTokAudioSourceManager extends AbstractDuncteBotHttpSource {
         // author
         String uniqueId;
 
-        AudioTrackInfoWithImage toTrackInfo() {
-            return new AudioTrackInfoWithImage(
+        AudioTrackInfo toTrackInfo() {
+            return new AudioTrackInfo(
                 this.title,
                 this.uniqueId,
                 this.duration * 1000L,
                 this.videoId,
                 false,
                 this.pageUrl,
-                this.cover
+                this.cover,
+                null
             );
         }
 

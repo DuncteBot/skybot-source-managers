@@ -17,7 +17,6 @@
 package com.dunctebot.sourcemanagers.pornhub;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
-import com.dunctebot.sourcemanagers.AudioTrackInfoWithImage;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -114,15 +113,16 @@ public class PornHubAudioSourceManager extends AbstractDuncteBotHttpSource {
         );
     }
 
-    private AudioTrackInfoWithImage buildInfo(String title, String author, long duration, String identifier, String uri, String imageUrl) {
-        return new AudioTrackInfoWithImage(
+    private AudioTrackInfo buildInfo(String title, String author, long duration, String identifier, String uri, String imageUrl) {
+        return new AudioTrackInfo(
             title,
             author,
             duration,
             identifier,
             false,
             uri,
-            imageUrl
+            imageUrl,
+            null
         );
     }
 

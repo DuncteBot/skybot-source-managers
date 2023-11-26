@@ -1,4 +1,8 @@
 # Skybot source managers
+
+> [!IMPORTANT]
+> This is compiled with `dev.arbjerg:lavalink` version 2.0.x in order to send artwork urls
+
 A bunch of extra source managers for LavaPlayer:
 
 - Mixcloud

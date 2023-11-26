@@ -39,15 +39,13 @@ repositories {
 }
 
 dependencies {
-    // build override for age-restricted videos
-//    implementation(group = "com.github.duncte123", name = "lavaplayer", version = "be6e364")
-    compileOnly(group = "com.github.walkyst", name = "lavaplayer-fork", version = "1.4.2")
+    compileOnly(group = "dev.arbjerg", name = "lavaplayer", version = "2.0.3")
 
     implementation("commons-io:commons-io:2.7")
     implementation(group = "org.jsoup", name = "jsoup", version = "1.15.3")
     implementation(group = "com.google.code.findbugs", name = "jsr305", version = "3.0.2")
 
-    testImplementation(group = "com.github.walkyst", name = "lavaplayer-fork", version = "1.4.2")
+    testImplementation(group = "dev.arbjerg", name = "lavaplayer", version = " 2.0.3")
 }
 
 configure<JavaPluginExtension> {

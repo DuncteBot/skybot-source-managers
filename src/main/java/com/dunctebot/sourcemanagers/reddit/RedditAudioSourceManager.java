@@ -17,7 +17,6 @@
 package com.dunctebot.sourcemanagers.reddit;
 
 import com.dunctebot.sourcemanagers.AbstractDuncteBotHttpSource;
-import com.dunctebot.sourcemanagers.AudioTrackInfoWithImage;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.tools.ExceptionTools;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -41,9 +40,9 @@ import java.util.regex.Pattern;
 
 import static com.dunctebot.sourcemanagers.Utils.USER_AGENT;
 import static com.dunctebot.sourcemanagers.Utils.isURL;
+import static com.dunctebot.sourcemanagers.reddit.RedditAudioTrack.getPlaybackUrl;
 import static com.sedmelluq.discord.lavaplayer.tools.FriendlyException.Severity.COMMON;
 import static com.sedmelluq.discord.lavaplayer.tools.JsonBrowser.NULL_BROWSER;
-import static com.dunctebot.sourcemanagers.reddit.RedditAudioTrack.getPlaybackUrl;
 
 public class RedditAudioSourceManager extends AbstractDuncteBotHttpSource {
     private static final Pattern FULL_LINK_REGEX = Pattern.compile("https:\\/\\/(?:www|old)\\.reddit\\.com\\/r\\/(?:[^\\/]+)\\/(?:[^\\/]+)\\/([^\\/]+)(?:\\/?(?:[^\\/]+)?\\/?)?");
@@ -204,14 +203,15 @@ public class RedditAudioSourceManager extends AbstractDuncteBotHttpSource {
         }
 
         return new RedditAudioTrack(
-            new AudioTrackInfoWithImage(
+            new AudioTrackInfo(
                 data.get("title").safeText(),
                 "u/" + data.get("author").safeText(),
                 media.get("duration").asLong(1) * 1000,
                 videoId,
                 false,
                 pageURl,
-                thumbnail
+                thumbnail,
+                null
             ),
             this
         );
